@@ -14,5 +14,20 @@ export const Users: CollectionConfig = {
       type: 'text',
       required: true,
     },
+    {
+      name: 'role',
+      type: 'select',
+      defaultValue: 'contributor',
+      required: true,
+      options: [
+        { label: 'Admin', value: 'admin' },
+        { label: 'Editor', value: 'editor' },
+        { label: 'Contributor', value: 'contributor' },
+      ],
+      access: {
+        read: () => true,
+        update: ({ req: { user } }) => user?.role === 'admin',
+      }
+    }
   ],
 }

@@ -8,7 +8,6 @@ export async function proxy(request: NextRequest) {
   const isPublicPath = 
     pathname === '/' ||
     pathname === '/login' || 
-    pathname === '/seed-user' ||
     pathname.startsWith('/api/users/login') ||
     pathname.startsWith('/api/users/init') || // For seeding if we use an init endpoint
     pathname.startsWith('/_next') ||

@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, timestamp, date, numeric, jsonb, boolean, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, timestamp, date, numeric, jsonb, boolean, pgEnum, integer } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const utilityTypeEnum = pgEnum('utility_type', ['Electricity', 'Solar', 'Water', 'Sewerage', 'Assessment Rates', 'CID Levy']);
@@ -103,7 +103,7 @@ export const users = pgTable('users', {
   resetPasswordExpiration: timestamp('reset_password_expiration'),
   salt: text('salt'),
   hash: text('hash'),
-  loginAttempts: numeric('login_attempts'),
+  loginAttempts: integer('login_attempts').default(0),
   lockUntil: timestamp('lock_until'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -115,9 +115,9 @@ export const media = pgTable('media', {
   url: text('url'),
   filename: text('filename'),
   mimeType: text('mime_type'),
-  filesize: numeric('filesize'),
-  width: numeric('width'),
-  height: numeric('height'),
+  filesize: integer('filesize'),
+  width: integer('width'),
+  height: integer('height'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -125,7 +125,7 @@ export const media = pgTable('media', {
 export const usersSessions = pgTable('users_sessions', {
   id: text('id').primaryKey(),
   parentId: uuid('_parent_id').references(() => users.id).notNull(),
-  order: numeric('_order').notNull(),
+  order: integer('_order').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   expiresAt: timestamp('expires_at').notNull(),
 });

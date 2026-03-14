@@ -10,6 +10,7 @@ import {
   Upload, 
   FilePieChart, 
   Settings, 
+  Users,
   ChevronLeft, 
   ChevronRight,
   Sun,
@@ -23,6 +24,7 @@ const menuItems = [
   { name: 'Properties', href: '/properties', icon: Building2 },
   { name: 'Upload', href: '/upload', icon: Upload },
   { name: 'Reports', href: '/reports', icon: FilePieChart },
+  { name: 'Users', href: '/users', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

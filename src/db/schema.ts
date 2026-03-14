@@ -93,3 +93,39 @@ export const appSettings = pgTable('app_settings', {
   analysisModel: varchar('analysis_model', { length: 255 }).default('gemini-3.1-pro').notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// Payload managed tables (manually defined to force creation via Drizzle)
+export const users = pgTable('users', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  resetPasswordToken: text('reset_password_token'),
+  resetPasswordExpiration: timestamp('reset_password_expiration'),
+  salt: text('salt'),
+  hash: text('hash'),
+  loginAttempts: numeric('login_attempts'),
+  lockUntil: timestamp('lock_until'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const media = pgTable('media', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  alt: text('alt').notNull(),
+  url: text('url'),
+  filename: text('filename'),
+  mimeType: text('mime_type'),
+  filesize: numeric('filesize'),
+  width: numeric('width'),
+  height: numeric('height'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const usersSessions = pgTable('users_sessions', {
+  id: text('id').primaryKey(),
+  parentId: uuid('_parent_id').references(() => users.id).notNull(),
+  order: numeric('_order').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+});

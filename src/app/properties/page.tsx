@@ -136,7 +136,7 @@ export default async function PropertiesPage() {
                     <td className="px-6 py-5 text-right">
                       <div className="font-mono font-bold text-slate-900 dark:text-teal-400">
                         {building.municipalValue 
-                          ? `R ${parseFloat(building.municipalValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          ? `R ${parseFloat(building.municipalValue).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                           : '—'
                         }
                       </div>

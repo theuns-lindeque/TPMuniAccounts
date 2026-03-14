@@ -141,7 +141,7 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
           onClick={toggleSidebar}
           className="w-full flex items-center justify-center py-2 text-slate-400 hover:text-teal-500 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-md transition-all"
         >
-          {isCollapsed ? <ChevronRight size={18} /> : <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest"><ChevronLeft size={16} /> Hide Sidebar</div>}
+          {isCollapsed ? <ChevronRight size={18} /> : <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest"><ChevronLeft size={16} /> Hide Sidebar</span>}
         </button>
       </div>
 

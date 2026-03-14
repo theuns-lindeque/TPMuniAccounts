@@ -22,13 +22,13 @@ export const FinancialTable = ({ reports }: FinancialTableProps) => {
             <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
               <td className="px-4 py-2 font-mono text-slate-600 dark:text-slate-400">{report.period}</td>
               <td className="px-4 py-2 text-right font-mono text-slate-900 dark:text-slate-100">
-                R {parseFloat(report.totalInvoiceAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                R {parseFloat(report.totalInvoiceAmount).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
               </td>
               <td className="px-4 py-2 text-right font-mono text-slate-900 dark:text-slate-100">
-                R {parseFloat(report.totalRecoveryAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                R {parseFloat(report.totalRecoveryAmount).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
               </td>
               <td className="px-4 py-2 text-right font-mono text-red-600 dark:text-red-400">
-                R {parseFloat(report.deficit).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                R {parseFloat(report.deficit).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
               </td>
               <td className="px-4 py-2">
                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${

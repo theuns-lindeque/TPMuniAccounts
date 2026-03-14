@@ -17,6 +17,20 @@ interface TrendsChartProps {
 }
 
 export const TrendsChart = ({ data }: TrendsChartProps) => {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="h-[300px] w-full border border-slate-200 dark:border-slate-800 rounded-md p-4 bg-white dark:bg-slate-950 flex items-center justify-center">
+        <div className="text-[10px] font-mono text-slate-400">LOADING_CHART_COMPONENT...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-[300px] w-full border border-slate-200 dark:border-slate-800 rounded-md p-4 bg-white dark:bg-slate-950">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4 px-2">

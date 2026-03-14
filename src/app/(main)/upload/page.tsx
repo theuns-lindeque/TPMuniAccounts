@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import { Building2, Upload, ArrowLeft, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ingestAction } from "@/app/actions/ingest";
+import { ingestAction } from "@/app/(main)/actions/ingest";
 import { FileUpload } from "@/components/ui/file-upload";
 
 function UploadContent() {

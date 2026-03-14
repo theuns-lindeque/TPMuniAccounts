@@ -12,7 +12,7 @@ import {
   Sparkles,
   RefreshCw
 } from "lucide-react";
-import { chatAction } from "@/app/actions/chat";
+import { chatAction } from "@/app/(main)/actions/chat";
 
 interface Message {
   role: 'user' | 'assistant';

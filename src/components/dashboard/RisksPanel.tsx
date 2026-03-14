@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { AlertTriangle, CheckCircle, MessageSquare } from 'lucide-react';
-import { saveFeedbackAction } from '@/app/actions/feedback';
+import { saveFeedbackAction } from '@/app/(main)/actions/feedback';
 
 interface RisksPanelProps {
   report: any;

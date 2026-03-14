@@ -26,7 +26,11 @@ const menuItems = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-export const Sidebar = () => {
+interface SidebarProps {
+  onNavigate?: () => void;
+}
+
+export const Sidebar = ({ onNavigate }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
@@ -93,7 +97,11 @@ export const Sidebar = () => {
           const Icon = item.icon;
           
           return (
-            <Link key={item.name} href={item.href}>
+            <Link 
+              key={item.name} 
+              href={item.href}
+              onClick={() => onNavigate?.()}
+            >
               <div className={`
                 flex items-center gap-4 px-3 py-2.5 rounded-md transition-all group/item relative
                 ${isActive 

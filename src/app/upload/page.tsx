@@ -53,21 +53,21 @@ function UploadContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 p-8 font-sans">
-      <header className="mb-10 flex justify-between items-end border-b border-slate-200 dark:border-slate-800 pb-6">
+    <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 p-4 sm:p-8 font-sans">
+      <header className="mb-6 sm:mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-slate-200 dark:border-slate-800 pb-4 sm:pb-6 gap-4">
         <div>
           <div className="flex items-center gap-2 text-teal-500 mb-1">
-            <Building2 size={16} />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Ingestion Portal</span>
+            <Building2 size={14} className="sm:size-4" />
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em]">Ingestion Portal</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             {documentType === 'recovery' ? 'Upload Recovery' : 'Upload Bills'}
           </h1>
         </div>
-        <div>
+        <div className="w-full sm:w-auto">
           <Link 
             href="/properties" 
-            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest rounded transition-all shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest rounded transition-all shadow-sm"
           >
             <ArrowLeft size={14} />
             Back to Registry
@@ -76,15 +76,15 @@ function UploadContent() {
       </header>
 
       <main className="max-w-4xl mx-auto">
-        <div className="relative border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950/50 shadow-xl overflow-hidden p-12">
+        <div className="relative border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950/50 shadow-xl overflow-hidden p-6 sm:p-12">
           {/* Decorative Corner */}
           <div className="absolute top-0 right-0 w-24 h-24 pointer-events-none overflow-hidden">
             <div className="absolute top-0 right-0 w-[1px] h-16 bg-teal-500/20 translate-x-[-1px]"></div>
             <div className="absolute top-0 right-0 w-16 h-[1px] bg-teal-500/20 translate-y-[-1px]"></div>
           </div>
 
-          <div className="text-center mb-12">
-            <h2 className="text-xl font-bold mb-2">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-lg sm:text-xl font-bold mb-2">
               {documentType === 'recovery' ? 'Submit Recovery Data' : 'Submit Municipal Bills'}
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">

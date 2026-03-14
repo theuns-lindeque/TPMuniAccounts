@@ -28,18 +28,18 @@ const mockChartData = [
 
 export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 p-6 font-sans">
-      <header className="mb-8 border-b border-slate-200 dark:border-slate-800 pb-6 flex justify-between items-end">
+    <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 p-4 sm:p-6 font-sans">
+      <header className="mb-6 sm:mb-8 border-b border-slate-200 dark:border-slate-800 pb-4 sm:pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <div className="flex items-center gap-2 text-teal-500 mb-1">
-            <LayoutDashboard size={16} />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">System Overview</span>
+            <LayoutDashboard size={14} className="sm:size-4" />
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em]">System Overview</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-slate-500 font-mono">BUILDING_ID: ALL_ACTIVE</p>
-          <p className="text-xs text-slate-500 font-mono">LAST_SYNC: 2026-03-13T22:20</p>
+        <div className="text-left sm:text-right">
+          <p className="text-[10px] sm:text-xs text-slate-500 font-mono uppercase tracking-tighter">BUILDING_ID: ALL_ACTIVE</p>
+          <p className="text-[10px] sm:text-xs text-slate-500 font-mono uppercase tracking-tighter">LAST_SYNC: 2026-03-13T22:20</p>
         </div>
       </header>
 

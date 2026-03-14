@@ -57,7 +57,7 @@ function LoginContent() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden">
           {/* Decorative Corner */}
           <div className="absolute top-0 right-0 w-24 h-24 pointer-events-none overflow-hidden opacity-20">
             <div className="absolute top-0 right-0 w-[1px] h-16 bg-teal-500 translate-x-[-1px]"></div>

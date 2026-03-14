@@ -14,26 +14,26 @@ export default async function PropertiesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 p-8 font-sans">
-      <header className="mb-10 flex justify-between items-end border-b border-slate-200 dark:border-slate-800 pb-6">
+    <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 p-4 sm:p-8 font-sans">
+      <header className="mb-6 sm:mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-slate-200 dark:border-slate-800 pb-4 sm:pb-6 gap-6">
         <div>
           <div className="flex items-center gap-2 text-teal-500 mb-1">
-            <Building2 size={16} />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Portfolio Management</span>
+            <Building2 size={14} className="sm:size-4" />
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em]">Portfolio Management</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Properties</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Properties</h1>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
           <Link 
             href="/upload?type=recovery" 
-            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 text-xs font-bold uppercase tracking-widest rounded transition-all border border-slate-200 dark:border-slate-700"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 text-xs font-bold uppercase tracking-widest rounded transition-all border border-slate-200 dark:border-slate-700"
           >
             <Upload size={14} className="text-teal-500" />
             Upload Recovery
           </Link>
           <Link 
             href="/upload?type=bill" 
-            className="flex items-center gap-2 px-4 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold uppercase tracking-widest rounded transition-all shadow-lg shadow-teal-500/10"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold uppercase tracking-widest rounded transition-all shadow-lg shadow-teal-500/10"
           >
             <Upload size={14} />
             Upload Bills

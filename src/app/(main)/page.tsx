@@ -1,7 +1,11 @@
+import { getAppSettings } from "@/app/(main)/actions/settings";
 import Link from "next/link";
 import { Lock, ArrowRight, ShieldCheck, BarChart3, Zap } from "lucide-react";
 
-export default function Home() {
+export default async function Home() {
+  const settings = await getAppSettings();
+  const activeModel = settings?.analysisModel.replace('gemini-', '').toUpperCase() || "3.1-PRO";
+
   return (
     <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 font-sans selection:bg-teal-100 selection:text-teal-900 overflow-hidden relative">
       {/* Blueprint Pattern Background */}
@@ -32,7 +36,7 @@ export default function Home() {
           <div className="max-w-xl text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-teal-500/20 bg-teal-500/5 mb-6 lg:mb-8">
               <span className="flex h-2 w-2 rounded-full bg-teal-500 animate-pulse"></span>
-              <span className="text-[9px] lg:text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">AI Engine 1.5-Pro Now Active</span>
+              <span className="text-[9px] lg:text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">AI Engine {activeModel} Now Active</span>
             </div>
             
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 lg:mb-8 leading-[1] lg:leading-[0.9]">
@@ -113,7 +117,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="absolute bottom-6 lg:bottom-12 left-6 lg:left-12 right-6 lg:right-12 flex justify-between items-center text-[9px] font-mono text-slate-400 uppercase tracking-[0.3em] pointer-events-none">
+      <footer className="absolute bottom-6 lg:bottom-12 left-6 lg:left-12 right-6 lg:left-12 flex justify-between items-center text-[9px] font-mono text-slate-400 uppercase tracking-[0.3em] pointer-events-none">
         <div className="flex gap-4">
           <span>LAT: -26.2041</span>
           <span>LNG: 28.0473</span>

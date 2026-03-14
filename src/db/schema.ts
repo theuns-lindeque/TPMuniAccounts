@@ -86,3 +86,10 @@ export const feedbackLoop = pgTable('feedback_loop', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const appSettings = pgTable('app_settings', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  chatModel: varchar('chat_model', { length: 255 }).default('gemini-3-flash').notNull(),
+  analysisModel: varchar('analysis_model', { length: 255 }).default('gemini-3.1-pro').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});

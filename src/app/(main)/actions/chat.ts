@@ -1,9 +1,7 @@
 "use server";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+import { getAppSettings } from "./settings";
 
 const SYSTEM_PROMPT = `
 You are the TPMuni Analysis Engine, a specialized AI consultant for commercial property municipal auditing in South Africa.
@@ -22,6 +20,12 @@ Keep responses concise and actionable.
 
 export async function chatAction(message: string, history: any[]) {
   try {
+    const settings = await getAppSettings();
+    const chatModel = settings?.chatModel || "gemini-3-flash";
+    
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || "");
+    const model = genAI.getGenerativeModel({ model: chatModel });
+
     const chat = model.startChat({
       history: history.map(m => ({
         role: m.role === 'user' ? 'user' : 'model',

@@ -117,7 +117,7 @@ export default function SettingsPage() {
               {MODELS.map((model) => (
                 <button
                   key={model.id}
-                  onClick={() => setSettings({ ...settings, chatModel: model.id })}
+                  onClick={() => setSettings((prev: any) => ({ ...prev, chatModel: model.id }))}
                   className={`
                     p-4 rounded-xl text-left transition-all border group
                     ${settings?.chatModel === model.id 
@@ -152,7 +152,7 @@ export default function SettingsPage() {
               {MODELS.map((model) => (
                 <button
                   key={model.id}
-                  onClick={() => setSettings({ ...settings, analysisModel: model.id })}
+                  onClick={() => setSettings((prev: any) => ({ ...prev, analysisModel: model.id }))}
                   className={`
                     p-4 rounded-xl text-left transition-all border group
                     ${settings?.analysisModel === model.id 

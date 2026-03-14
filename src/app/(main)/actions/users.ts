@@ -1,14 +1,19 @@
 "use server";
-
+import { cookies, headers } from "next/headers";
 import { getPayload } from "payload";
 import configPromise from "@payload-config";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 
 export async function getMe() {
   const payload = await getPayload({ config: configPromise });
   const { user } = await payload.auth({ headers: await headers() });
   return user;
+}
+
+export async function logoutUser() {
+  const cookieStore = await cookies();
+  cookieStore.delete("payload-token");
+  return { success: true };
 }
 
 async function ensureAdmin() {

@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { getMe } from '@/app/(main)/actions/users';
+import { getMe, logoutUser } from '@/app/(main)/actions/users';
 
 const menuItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -57,14 +57,8 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch('/api/users/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (res.ok) {
+      const result = await logoutUser();
+      if (result.success) {
         router.push('/login');
         router.refresh();
       }

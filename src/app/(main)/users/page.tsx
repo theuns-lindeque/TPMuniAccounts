@@ -17,7 +17,8 @@ import {
   Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getUsers, createUser, updateUser, deleteUser } from "@/app/(main)/actions/users";
+import { getUsers, createUser, updateUser, deleteUser, getMe } from "@/app/(main)/actions/users";
+import { redirect } from "next/navigation";
 
 export default function UsersPage() {
   const [userList, setUserList] = useState<any[]>([]);
@@ -29,11 +30,19 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Form State
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", role: "contributor" });
 
   useEffect(() => {
+    checkAdmin();
     fetchUsers();
   }, []);
+
+  async function checkAdmin() {
+    const me = await getMe();
+    if (!me || me.role !== "admin") {
+      redirect("/dashboard");
+    }
+  }
 
   async function fetchUsers() {
     setIsLoading(true);
@@ -50,10 +59,10 @@ export default function UsersPage() {
   const handleOpenModal = (user: any = null) => {
     if (user) {
       setEditingUser(user);
-      setFormData({ name: user.name, email: user.email, password: "" });
+      setFormData({ name: user.name, email: user.email, password: "", role: user.role });
     } else {
       setEditingUser(null);
-      setFormData({ name: "", email: "", password: "" });
+      setFormData({ name: "", email: "", password: "", role: "contributor" });
     }
     setError(null);
     setIsModalOpen(true);
@@ -66,7 +75,7 @@ export default function UsersPage() {
 
     try {
       if (editingUser) {
-        const updateData: any = { name: formData.name, email: formData.email };
+        const updateData: any = { name: formData.name, email: formData.email, role: formData.role };
         if (formData.password) updateData.password = formData.password;
         
         const res = await updateUser(editingUser.id, updateData);
@@ -193,9 +202,13 @@ export default function UsersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-widest border border-emerald-500/20">
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border ${
+                        user.role === 'admin' ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20' :
+                        user.role === 'editor' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' :
+                        'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+                      }`}>
                         <ShieldCheck size={10} />
-                        Authorized
+                        {user.role}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -308,6 +321,18 @@ export default function UsersPage() {
                       className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-teal-500 focus:outline-none transition-all placeholder:text-slate-300 font-mono"
                       placeholder="••••••••••••"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">System Role</label>
+                    <select 
+                      value={formData.role}
+                      onChange={(e) => setFormData({...formData, role: e.target.value})}
+                      className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-teal-500 focus:outline-none transition-all"
+                    >
+                      <option value="admin">Admin (Full Control)</option>
+                      <option value="editor">Editor (No User Access)</option>
+                      <option value="contributor">Contributor (Read Only)</option>
+                    </select>
                   </div>
                 </div>
 

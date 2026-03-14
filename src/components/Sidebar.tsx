@@ -18,13 +18,14 @@ import {
   Menu
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { getMe } from '@/app/(main)/actions/users';
 
 const menuItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Properties', href: '/properties', icon: Building2 },
   { name: 'Upload', href: '/upload', icon: Upload },
   { name: 'Reports', href: '/reports', icon: FilePieChart },
-  { name: 'Users', href: '/users', icon: Users },
+  { name: 'Users', href: '/users', icon: Users, role: ['admin'] },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -35,13 +36,19 @@ interface SidebarProps {
 export const Sidebar = ({ onNavigate }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
 
-  // Handle mounting to avoid hydration mismatch for theme toggle
   useEffect(() => {
     setMounted(true);
+    getMe().then(setUser);
   }, []);
+
+  const filteredItems = menuItems.filter(item => {
+    if (!item.role) return true;
+    return item.role.includes(user?.role || '');
+  });
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
@@ -94,7 +101,7 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
 
       {/* Navigation Menu */}
       <nav className="flex-1 py-6 px-4 space-y-2">
-        {menuItems.map((item) => {
+        {filteredItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
           

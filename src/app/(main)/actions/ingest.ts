@@ -5,6 +5,7 @@ import { invoices, recoveries } from '@/db/schema'
 import { LlamaParse } from 'llama-parse'
 import { parse } from 'csv-parse/sync'
 import { inngest } from '@/inngest/client'
+import { getMe } from './users'
 
 interface CSVRecord {
   Tenant?: string
@@ -20,6 +21,11 @@ interface CSVRecord {
 }
 
 export async function ingestAction(formData: FormData) {
+  const user = await getMe();
+  if (!user || !['admin', 'editor'].includes(user.role)) {
+    return { success: false, error: 'Unauthorized: You do not have permission to ingest data.' }
+  }
+
   const files = formData.getAll('files') as File[]
   const buildingId = formData.get('buildingId') as string
   const documentType = (formData.get('documentType') as string) || 'bill'

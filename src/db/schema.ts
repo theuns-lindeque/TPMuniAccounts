@@ -3,6 +3,7 @@ import { relations } from 'drizzle-orm';
 
 export const utilityTypeEnum = pgEnum('utility_type', ['Electricity', 'Solar', 'Water', 'Sewerage', 'Assessment Rates', 'CID Levy']);
 export const riskLevelEnum = pgEnum('risk_level', ['Low', 'Medium', 'High']);
+export const userRoleEnum = pgEnum('user_role', ['admin', 'editor', 'contributor']);
 
 export const buildings = pgTable('buildings', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -105,6 +106,7 @@ export const users = pgTable('users', {
   hash: text('hash'),
   loginAttempts: integer('login_attempts').default(0),
   lockUntil: timestamp('lock_until'),
+  role: userRoleEnum('role').default('contributor').notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

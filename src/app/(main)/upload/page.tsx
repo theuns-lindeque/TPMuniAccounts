@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ingestAction } from "@/app/(main)/actions/ingest";
 import { FileUpload } from "@/components/ui/file-upload";
+import { getMe } from "@/app/(main)/actions/users";
+import { useEffect } from "react";
 
 function UploadContent() {
   const searchParams = useSearchParams();
@@ -16,8 +18,16 @@ function UploadContent() {
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<string>("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    getMe().then(setUser);
+  }, []);
+
+  const isReadOnly = user?.role === 'contributor';
 
   const handleFileUpload = async (uploadedFiles: File[]) => {
+    if (isReadOnly) return;
     setFiles(uploadedFiles);
     setIsSuccess(false);
   };
@@ -63,6 +73,11 @@ function UploadContent() {
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             {documentType === 'recovery' ? 'Upload Recovery' : 'Upload Bills'}
           </h1>
+          {isReadOnly && (
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-amber-500/20 bg-amber-500/5 text-amber-500 text-[9px] font-bold uppercase tracking-wider mt-1">
+              Read Only Mode
+            </div>
+          )}
         </div>
         <div className="w-full sm:w-auto">
           <Link 
@@ -94,8 +109,18 @@ function UploadContent() {
             </p>
           </div>
 
-          <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/30 transition-colors hover:border-teal-500/30">
-            <FileUpload onChange={handleFileUpload} />
+          <div className={`border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/30 transition-colors ${!isReadOnly ? 'hover:border-teal-500/30' : 'opacity-50 cursor-not-allowed'}`}>
+            {!isReadOnly ? (
+              <FileUpload onChange={handleFileUpload} />
+            ) : (
+              <div className="py-20 text-center flex flex-col items-center gap-4">
+                <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400">
+                  <Upload size={32} />
+                </div>
+                <p className="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest">Upload Access Restricted</p>
+                <p className="text-[10px] text-slate-500 max-w-[240px] leading-relaxed">Your node profile (CONTRIBUTOR) does not have authorization to ingest new data into the registry.</p>
+              </div>
+            )}
           </div>
 
           <div className="mt-12 flex flex-col items-center">

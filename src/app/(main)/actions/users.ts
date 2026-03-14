@@ -3,6 +3,20 @@
 import { getPayload } from "payload";
 import configPromise from "@payload-config";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+
+export async function getMe() {
+  const payload = await getPayload({ config: configPromise });
+  const { user } = await payload.auth({ headers: await headers() });
+  return user;
+}
+
+async function ensureAdmin() {
+  const user = await getMe();
+  if (user?.role !== 'admin') {
+    throw new Error('Unauthorized: Admin access required.');
+  }
+}
 
 export async function getUsers() {
   const payload = await getPayload({ config: configPromise });
@@ -14,8 +28,9 @@ export async function getUsers() {
   return users.docs;
 }
 
-export async function createUser(data: { email: string; name: string; password?: string }) {
+export async function createUser(data: { email: string; name: string; password?: string, role?: string }) {
   try {
+    await ensureAdmin();
     const payload = await getPayload({ config: configPromise });
     const user = await payload.create({
       collection: "users",
@@ -23,6 +38,7 @@ export async function createUser(data: { email: string; name: string; password?:
         email: data.email,
         name: data.name,
         password: data.password || "TempPass123!", // Default password if not provided
+        role: (data.role as any) || "contributor",
       },
     });
     revalidatePath("/users");
@@ -33,8 +49,9 @@ export async function createUser(data: { email: string; name: string; password?:
   }
 }
 
-export async function updateUser(id: string, data: { email?: string; name?: string; password?: string }) {
+export async function updateUser(id: string, data: { email?: string; name?: string; password?: string, role?: string }) {
   try {
+    await ensureAdmin();
     const payload = await getPayload({ config: configPromise });
     const user = await payload.update({
       collection: "users",
@@ -51,6 +68,7 @@ export async function updateUser(id: string, data: { email?: string; name?: stri
 
 export async function deleteUser(id: string) {
   try {
+    await ensureAdmin();
     const payload = await getPayload({ config: configPromise });
     await payload.delete({
       collection: "users",

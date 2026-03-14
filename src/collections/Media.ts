@@ -5,6 +5,9 @@ export const Media: CollectionConfig = {
   upload: true,
   access: {
     read: () => true,
+    create: ({ req: { user } }) => ['admin', 'editor'].includes(user?.role || ''),
+    update: ({ req: { user } }) => ['admin', 'editor'].includes(user?.role || ''),
+    delete: ({ req: { user } }) => ['admin', 'editor'].includes(user?.role || ''),
   },
   fields: [
     {

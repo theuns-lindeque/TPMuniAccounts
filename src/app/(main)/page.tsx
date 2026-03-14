@@ -4,7 +4,9 @@ import { Lock, ArrowRight, ShieldCheck, BarChart3, Zap } from "lucide-react";
 
 export default async function Home() {
   const settings = await getAppSettings();
-  const activeModel = settings?.analysisModel.replace('gemini-', '').toUpperCase() || "3.1-PRO";
+  const activeModel = settings?.analysisModel 
+    ? settings.analysisModel.replace('gemini-', '').toUpperCase() 
+    : "3.1-PRO";
 
   return (
     <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 font-sans selection:bg-teal-100 selection:text-teal-900 overflow-hidden relative">

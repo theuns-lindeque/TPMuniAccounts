@@ -37,8 +37,8 @@ export default function SettingsPage() {
     setIsSaving(true);
     setStatus(null);
     const result = await updateAppSettings({
-      chatModel: settings.chatModel,
-      analysisModel: settings.analysisModel,
+      chatModel: settings?.chatModel || "gemini-3-flash",
+      analysisModel: settings?.analysisModel || "gemini-3.1-pro",
     });
     
     if (result.success) {
@@ -120,7 +120,7 @@ export default function SettingsPage() {
                   onClick={() => setSettings({ ...settings, chatModel: model.id })}
                   className={`
                     p-4 rounded-xl text-left transition-all border group
-                    ${settings.chatModel === model.id 
+                    ${settings?.chatModel === model.id 
                       ? 'bg-teal-500/5 border-teal-500 shadow-[0_0_15px_rgba(20,184,166,0.1)]' 
                       : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-teal-500/30'}
                   `}
@@ -129,7 +129,7 @@ export default function SettingsPage() {
                     <span className="text-sm font-bold">{model.name}</span>
                     <span className={`
                       text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-widest
-                      ${settings.chatModel === model.id ? 'bg-teal-500 text-white' : 'bg-slate-100 dark:bg-slate-900 text-slate-500'}
+                      ${settings?.chatModel === model.id ? 'bg-teal-500 text-white' : 'bg-slate-100 dark:bg-slate-900 text-slate-500'}
                     `}>
                       {model.badge}
                     </span>
@@ -155,7 +155,7 @@ export default function SettingsPage() {
                   onClick={() => setSettings({ ...settings, analysisModel: model.id })}
                   className={`
                     p-4 rounded-xl text-left transition-all border group
-                    ${settings.analysisModel === model.id 
+                    ${settings?.analysisModel === model.id 
                       ? 'bg-teal-500/5 border-teal-500 shadow-[0_0_15px_rgba(20,184,166,0.1)]' 
                       : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-teal-500/30'}
                   `}
@@ -164,7 +164,7 @@ export default function SettingsPage() {
                     <span className="text-sm font-bold">{model.name}</span>
                     <span className={`
                       text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-widest
-                      ${settings.analysisModel === model.id ? 'bg-teal-500 text-white' : 'bg-slate-100 dark:bg-slate-900 text-slate-500'}
+                      ${settings?.analysisModel === model.id ? 'bg-teal-500 text-white' : 'bg-slate-100 dark:bg-slate-900 text-slate-500'}
                     `}>
                       {model.badge}
                     </span>

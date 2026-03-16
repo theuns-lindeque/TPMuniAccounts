@@ -10,16 +10,17 @@ import { Users } from './collections/Users'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-console.log('Payload Config - Loading. Environment:', {
-  hasSecret: !!process.env.PAYLOAD_SECRET,
-  nodeEnv: process.env.NODE_ENV,
-  vercelUrl: process.env.VERCEL_URL,
-});
+const serverURL = process.env.VERCEL_PROJECT_PRODUCTION_URL 
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` 
+  : process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 
 export default buildConfig({
   admin: {
     user: Users.slug,
   },
+  serverURL,
   editor: lexicalEditor(),
   db: postgresAdapter({
     pool: {

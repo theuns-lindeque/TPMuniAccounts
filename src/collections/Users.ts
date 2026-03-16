@@ -2,10 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 export const Users: CollectionConfig = {
   slug: 'users',
-  auth: {
-    maxLoginAttempts: 20,
-    lockTime: 600 * 1000, // 10 minutes
-  },
+  auth: true,
   admin: {
     useAsTitle: 'email',
   },
@@ -15,7 +12,6 @@ export const Users: CollectionConfig = {
     update: ({ req: { user } }) => user?.role === 'admin',
     delete: ({ req: { user } }) => user?.role === 'admin',
     admin: ({ req: { user } }) => user?.role === 'admin',
-    unlock: ({ req: { user } }) => user?.role === 'admin',
   },
   fields: [
     {
@@ -34,10 +30,6 @@ export const Users: CollectionConfig = {
         { label: 'Contributor', value: 'contributor' },
       ],
       saveToJWT: true,
-      access: {
-        read: () => true,
-        update: ({ req: { user } }) => user?.role === 'admin',
-      }
     }
   ],
 }

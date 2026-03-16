@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 export async function getMe() {
   const payload = await getPayload({ config: configPromise });
   const { user } = await payload.auth({ headers: await headers() });
+  console.log('getMe - User:', JSON.stringify(user, null, 2));
   return user;
 }
 

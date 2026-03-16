@@ -22,7 +22,10 @@ interface CSVRecord {
 
 export async function ingestAction(formData: FormData) {
   const user = await getMe();
+  console.log('Ingest Action - User:', JSON.stringify(user, null, 2));
+  
   if (!user || !['admin', 'editor'].includes(user.role)) {
+    console.log('Ingest Action - Unauthorized. Role:', user?.role);
     return { success: false, error: 'Unauthorized: You do not have permission to ingest data.' }
   }
 

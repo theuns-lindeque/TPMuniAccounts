@@ -24,6 +24,7 @@ export const Users: CollectionConfig = {
         { label: 'Editor', value: 'editor' },
         { label: 'Contributor', value: 'contributor' },
       ],
+      saveToJWT: true,
       access: {
         read: () => true,
         update: ({ req: { user } }) => user?.role === 'admin',

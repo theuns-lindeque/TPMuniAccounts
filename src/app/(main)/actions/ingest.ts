@@ -22,11 +22,16 @@ interface CSVRecord {
 
 export async function ingestAction(formData: FormData) {
   const user = await getMe();
-  console.log('Ingest Action - User:', JSON.stringify(user, null, 2));
+  console.log('Ingest Action - Full User Object:', JSON.stringify(user, null, 2));
   
-  if (!user || !['admin', 'editor'].includes(user.role)) {
-    console.log('Ingest Action - Unauthorized. Role:', user?.role);
-    return { success: false, error: 'Unauthorized: You do not have permission to ingest data.' }
+  if (!user) {
+    console.log('Ingest Action - No user found in session');
+    return { success: false, error: 'Unauthorized: No active session found.' }
+  }
+
+  if (!['admin', 'editor'].includes(user.role)) {
+    console.log('Ingest Action - Insufficient Permissions. User Role:', user.role);
+    return { success: false, error: `Unauthorized: You do not have permission to ingest data. Your role is ${user.role || 'none'}.` }
   }
 
   const files = formData.getAll('files') as File[]
@@ -77,6 +82,7 @@ export async function ingestAction(formData: FormData) {
           })
           
           const result = await parser.parseFile(file)
+          console.log('Ingest Action - LlamaParse result:', JSON.stringify(result, null, 2));
           // Placeholder for real AI extraction
           await db.insert(invoices).values({
             utilityAccountId: buildingId,
@@ -88,9 +94,11 @@ export async function ingestAction(formData: FormData) {
             usage: '0',
             pdfUrl: publicUrl,
           })
+          console.log('Ingest Action - Invoice record inserted for PDF.');
         }
 
       } else if (file.name.endsWith('.csv')) {
+        console.log('Ingest Action - Handling CSV file.');
         // Process Tenant Recoveries with csv-parse
         const content = buffer.toString()
         const records = parse(content, {

@@ -5,10 +5,26 @@ import configPromise from "@payload-config";
 import { revalidatePath } from "next/cache";
 
 export async function getMe() {
-  const payload = await getPayload({ config: configPromise });
-  const { user } = await payload.auth({ headers: await headers() });
-  console.log('getMe - User:', JSON.stringify(user, null, 2));
-  return user;
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const reqHeaders = await headers();
+    const { user } = await payload.auth({ headers: reqHeaders });
+    
+    console.log('getMe - User Object Found:', !!user);
+    if (user) {
+      console.log('getMe - User Role:', user.role);
+    } else {
+      console.log('getMe - No User Found. Headers summary:', {
+        cookie: !!reqHeaders.get('cookie'),
+        auth: !!reqHeaders.get('authorization'),
+      });
+    }
+    
+    return user;
+  } catch (error) {
+    console.error('getMe - Error:', error);
+    return null;
+  }
 }
 
 export async function logoutUser() {

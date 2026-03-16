@@ -10,11 +10,15 @@ import { Users } from './collections/Users'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+const serverURL = process.env.VERCEL_PROJECT_PRODUCTION_URL 
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` 
+  : process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+
 export default buildConfig({
   admin: {
     user: Users.slug,
   },
-  serverURL: process.env.NEXT_PUBLIC_SERVER_URL || '',
+  serverURL,
   editor: lexicalEditor(),
   db: postgresAdapter({
     pool: {

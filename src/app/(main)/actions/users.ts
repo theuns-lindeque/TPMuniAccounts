@@ -14,9 +14,10 @@ export async function getMe() {
     if (user) {
       console.log('getMe - User Role:', user.role);
     } else {
-      console.log('getMe - No User Found. Headers summary:', {
-        cookie: !!reqHeaders.get('cookie'),
-        auth: !!reqHeaders.get('authorization'),
+      const cookieHeader = reqHeaders.get('cookie') || '';
+      console.log('getMe - No User Found. Cookies present:', {
+        hasPayloadToken: cookieHeader.includes('payload-token'),
+        cookieCount: cookieHeader.split(';').length,
       });
     }
     

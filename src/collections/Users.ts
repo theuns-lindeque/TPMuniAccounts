@@ -3,10 +3,19 @@ import type { CollectionConfig } from 'payload'
 export const Users: CollectionConfig = {
   slug: 'users',
   auth: {
-    maxLoginAttempts: 0,
+    maxLoginAttempts: 20,
+    lockTime: 600 * 1000, // 10 minutes
   },
   admin: {
     useAsTitle: 'email',
+  },
+  access: {
+    read: () => true,
+    create: () => true,
+    update: ({ req: { user } }) => user?.role === 'admin',
+    delete: ({ req: { user } }) => user?.role === 'admin',
+    admin: ({ req: { user } }) => user?.role === 'admin',
+    unlock: ({ req: { user } }) => user?.role === 'admin',
   },
   fields: [
     {

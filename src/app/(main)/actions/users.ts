@@ -12,6 +12,11 @@ export async function getMe() {
     
     console.log('getMe - User Object Found:', !!user);
     const host = reqHeaders.get('host');
+    
+    if (!process.env.PAYLOAD_SECRET) {
+      console.error('getMe - CRITICAL: PAYLOAD_SECRET is missing from environment variables!');
+    }
+
     if (user) {
       console.log(`getMe - User: ${user.email}, Role: ${user.role}, Host: ${host}`);
     } else {
@@ -19,10 +24,9 @@ export async function getMe() {
       const hasToken = cookieHeader.includes('payload-token');
       console.log(`getMe - No User. Host: ${host}, Token Cookie: ${hasToken}`);
       if (hasToken) {
-        // Log a tiny bit of the token to see if it exists but is invalid
         const tokenMatch = cookieHeader.match(/payload-token=([^;]+)/);
         if (tokenMatch) {
-          console.log(`getMe - Token starts with: ${tokenMatch[1].substring(0, 10)}...`);
+          console.log(`getMe - Token Segment: ${tokenMatch[1].substring(0, 15)}...`);
         }
       }
     }

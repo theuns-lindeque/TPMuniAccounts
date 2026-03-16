@@ -22,7 +22,14 @@ export async function getMe() {
     } else {
       const cookieHeader = reqHeaders.get('cookie') || '';
       console.log(`getMe - Authentication Failed. Host: ${host}`);
-      console.log(`getMe - Raw Cookie Names: ${cookieHeader.split(';').map(c => c.split('=')[0].trim()).join(', ')}`);
+      console.log('getMe - Headers Dump:');
+      reqHeaders.forEach((v, k) => {
+        if (k.toLowerCase() !== 'cookie' && k.toLowerCase() !== 'authorization') {
+          console.log(`  ${k}: ${v}`);
+        }
+      });
+      
+      console.log(`getMe - All Cookie Names: ${cookieHeader.split(';').map(c => c.split('=')[0].trim()).join(', ')}`);
       
       if (cookieHeader.includes('payload-token')) {
         const tokenMatch = cookieHeader.match(/payload-token=([^;]+)/);

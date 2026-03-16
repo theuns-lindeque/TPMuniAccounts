@@ -17,6 +17,7 @@ const serverURL = process.env.VERCEL_PROJECT_PRODUCTION_URL
     : process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 
 export default buildConfig({
+  debug: true,
   admin: {
     user: Users.slug,
   },

@@ -11,14 +11,20 @@ export async function getMe() {
     const { user } = await payload.auth({ headers: reqHeaders });
     
     console.log('getMe - User Object Found:', !!user);
+    const host = reqHeaders.get('host');
     if (user) {
-      console.log('getMe - User Role:', user.role);
+      console.log(`getMe - User: ${user.email}, Role: ${user.role}, Host: ${host}`);
     } else {
       const cookieHeader = reqHeaders.get('cookie') || '';
-      console.log('getMe - No User Found. Cookies present:', {
-        hasPayloadToken: cookieHeader.includes('payload-token'),
-        cookieCount: cookieHeader.split(';').length,
-      });
+      const hasToken = cookieHeader.includes('payload-token');
+      console.log(`getMe - No User. Host: ${host}, Token Cookie: ${hasToken}`);
+      if (hasToken) {
+        // Log a tiny bit of the token to see if it exists but is invalid
+        const tokenMatch = cookieHeader.match(/payload-token=([^;]+)/);
+        if (tokenMatch) {
+          console.log(`getMe - Token starts with: ${tokenMatch[1].substring(0, 10)}...`);
+        }
+      }
     }
     
     return user;

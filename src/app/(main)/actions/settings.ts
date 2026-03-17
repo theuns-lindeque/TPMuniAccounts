@@ -10,7 +10,10 @@ export async function getAppSettings() {
     const settings = await db.select().from(appSettings).limit(1);
     if (settings.length === 0) {
       // Initialize with defaults if empty
-      const [newSettings] = await db.insert(appSettings).values({}).returning();
+      const [newSettings] = await db
+        .insert(appSettings)
+        .values({ id: crypto.randomUUID() })
+        .returning();
       return newSettings;
     }
     return settings[0];

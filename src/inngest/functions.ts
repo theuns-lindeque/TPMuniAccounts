@@ -83,7 +83,7 @@ export const analyzeUtilityData = inngest.createFunction(
       const { appSettings } = await import("@/db/schema");
       const settingsResult = await db.select().from(appSettings).limit(1);
       const analysisModel =
-        settingsResult[0]?.analysisModel || "gemini-3.1-pro";
+        settingsResult[0]?.analysisModel || "gemini-1.5-pro";
 
       const genAI = new GoogleGenerativeAI(
         process.env.GOOGLE_GENERATIVE_AI_API_KEY!,

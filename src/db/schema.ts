@@ -142,7 +142,7 @@ export const appSettings = pgTable("app_settings", {
     .default("gemini-3-flash")
     .notNull(),
   analysisModel: varchar("analysis_model", { length: 255 })
-    .default("gemini-3.1-pro")
+    .default("gemini-1.5-pro")
     .notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

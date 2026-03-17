@@ -34,3 +34,23 @@ export async function createBuildingAction(data: {
     };
   }
 }
+
+export async function getAllBuildingsAction() {
+  const user = await getMe();
+  if (!user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const allBuildings = await db.query.buildings.findMany({
+      orderBy: (buildings, { asc }) => [asc(buildings.name)],
+    });
+    return { success: true, buildings: allBuildings };
+  } catch (error: unknown) {
+    console.error("Fetch buildings error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}

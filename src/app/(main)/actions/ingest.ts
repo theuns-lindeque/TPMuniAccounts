@@ -48,6 +48,10 @@ export async function ingestAction(formData: FormData) {
   const documentType = (formData.get("documentType") as string) || "bill";
   const apiKey = process.env.LLAMA_CLOUD_API_KEY;
 
+  if (!buildingId || buildingId === "all") {
+    return { success: false, error: "A valid property must be selected." };
+  }
+
   if (!apiKey) {
     return { success: false, error: "LLAMA_CLOUD_API_KEY is missing in .env" };
   }
@@ -105,10 +109,31 @@ export async function ingestAction(formData: FormData) {
             "Ingest Action - LlamaParse result:",
             JSON.stringify(result, null, 2),
           );
+
+          // Get utility account ID for the bill to prevent FK errors
+          const { utilityAccounts } = await import("@/db/schema");
+          const { eq } = await import("drizzle-orm");
+          let accounts = await db.select().from(utilityAccounts).where(eq(utilityAccounts.buildingId, buildingId));
+          
+          let targetUtilityAccountId = "";
+          if (accounts.length > 0) {
+             targetUtilityAccountId = accounts[0].id;
+          } else {
+             // Create a generic one to satisfy FK constraints if none exists
+             const newId = crypto.randomUUID();
+             await db.insert(utilityAccounts).values({
+               id: newId,
+               buildingId: buildingId,
+               type: "Electricity",
+               accountNumber: "AUTO-GENERATED",
+             });
+             targetUtilityAccountId = newId;
+          }
+
           // Placeholder for real AI extraction
           const record = {
             id: crypto.randomUUID(),
-            utilityAccountId: buildingId,
+            utilityAccountId: targetUtilityAccountId,
             billingPeriod: new Date().toISOString().split("T")[0],
             amount: "0",
             basicCharge: "0",

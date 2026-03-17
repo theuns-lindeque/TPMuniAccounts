@@ -18,11 +18,17 @@ import { useSearchParams } from "next/navigation";
 import { ingestAction } from "@/app/(main)/actions/ingest";
 import { FileUpload } from "@/components/ui/file-upload";
 import { getMe } from "@/app/(main)/actions/users";
+import { getAllBuildingsAction } from "@/app/(main)/actions/buildings";
 
 function UploadContent() {
   const searchParams = useSearchParams();
   const documentType = searchParams.get("type") || "bill";
-  const buildingId = searchParams.get("buildingId") || "all";
+  const initialBuildingId = searchParams.get("buildingId") || "";
+
+  const [buildingId, setBuildingId] = useState(initialBuildingId);
+  const [buildings, setBuildings] = useState<{ id: string; name: string }[]>(
+    [],
+  );
 
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -35,7 +41,15 @@ function UploadContent() {
 
   useEffect(() => {
     getMe().then((u) => setUser(u as { role: string } | null));
-  }, []);
+    getAllBuildingsAction().then((res) => {
+      if (res.success && res.buildings) {
+        setBuildings(res.buildings);
+        if (!initialBuildingId && res.buildings.length > 0) {
+          setBuildingId(res.buildings[0].id);
+        }
+      }
+    });
+  }, [initialBuildingId]);
 
   const isReadOnly = user?.role === "contributor";
 
@@ -127,11 +141,33 @@ function UploadContent() {
                 ? "Submit Recovery Data"
                 : "Submit Municipal Bills"}
             </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
               {documentType === "recovery"
                 ? "Select CSV or PDF recovery files to process for billing reconciliation."
                 : "Upload scanned municipal bill PDFs for AI-driven extraction and analysis."}
             </p>
+
+            <div className="max-w-xs mx-auto text-left">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+                Target Property Record
+              </label>
+              <select
+                value={buildingId}
+                onChange={(e) => setBuildingId(e.target.value)}
+                disabled={isReadOnly || buildings.length === 0}
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none appearance-none disabled:opacity-50"
+              >
+                {buildings.length === 0 ? (
+                  <option value="">No properties registered</option>
+                ) : (
+                  buildings.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
           </div>
 
           <div
@@ -159,10 +195,12 @@ function UploadContent() {
             {files.length > 0 && !isSuccess && (
               <button
                 onClick={startIngestion}
-                disabled={uploading}
+                disabled={uploading || !buildingId}
                 className={cn(
-                  "px-10 py-4 rounded-lg bg-teal-500 hover:bg-teal-600 text-white font-bold uppercase tracking-widest text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center gap-3",
-                  uploading && "opacity-50 cursor-not-allowed scale-[0.98]",
+                  "px-10 py-4 rounded-lg bg-teal-500 text-white font-bold uppercase tracking-widest text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center gap-3",
+                  (uploading || !buildingId)
+                    ? "opacity-50 cursor-not-allowed scale-[0.98]"
+                    : "hover:bg-teal-600",
                 )}
               >
                 {uploading ? (

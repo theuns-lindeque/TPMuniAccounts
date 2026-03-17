@@ -110,46 +110,220 @@ export async function ingestAction(formData: FormData) {
             JSON.stringify(result, null, 2),
           );
 
-          // Get utility account ID for the bill to prevent FK errors
-          const { utilityAccounts } = await import("@/db/schema");
+          // Concatenate all pages into a single text string
+          const parsedText = Array.isArray(result)
+            ? result.map((page: { text?: string }) => page.text || "").join("\n")
+            : typeof result === "object" && result !== null && "text" in result
+              ? (result as { text: string }).text
+              : String(result);
+
+          console.log("Ingest Action - Parsed text length:", parsedText.length);
+
+          // ── Gemini extraction: pull real charges from bill text ──────
+          const { GoogleGenerativeAI } = await import("@google/generative-ai");
+          const { appSettings, utilityAccounts } = await import("@/db/schema");
           const { eq } = await import("drizzle-orm");
-          let accounts = await db.select().from(utilityAccounts).where(eq(utilityAccounts.buildingId, buildingId));
-          
-          let targetUtilityAccountId = "";
-          if (accounts.length > 0) {
-             targetUtilityAccountId = accounts[0].id;
-          } else {
-             // Create a generic one to satisfy FK constraints if none exists
-             const newId = crypto.randomUUID();
-             await db.insert(utilityAccounts).values({
-               id: newId,
-               buildingId: buildingId,
-               type: "Electricity",
-               accountNumber: "AUTO-GENERATED",
-             });
-             targetUtilityAccountId = newId;
+
+          const settingsResult = await db.select().from(appSettings).limit(1);
+          const modelName =
+            settingsResult[0]?.analysisModel || "gemini-3-flash-preview";
+
+          const genAI = new GoogleGenerativeAI(
+            process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+          );
+          const model = genAI.getGenerativeModel({ model: modelName });
+
+          const extractionPrompt = `
+You are a South African municipal bill parser. Extract EVERY service/charge line from the following municipal bill text.
+
+IMPORTANT RULES:
+- Use the "Billed Amount" column (VAT exclusive). Do NOT use Billed VAT, Closing Balance, or any VAT-inclusive amount.
+- Map each service to one of these utility types: "Electricity", "Solar", "Water", "Sewerage", "Assessment Rates", "CID Levy".
+  - "Electricity Metered", "Electricity Basic" → "Electricity"
+  - "Water Metered", "Water Basic" → "Water"
+  - "Sanitation Basic", "Sanitation", "Sewerage" → "Sewerage"
+  - "Property Rates", "Assessment Rates", "Rates" → "Assessment Rates"
+  - "Waste Disposal", "Refuse" → "CID Levy"
+  - "Solar" → "Solar"
+- For each service line, classify the charge:
+  - If the service contains "Basic" → basicCharge
+  - If the service contains "Metered" or "Usage" → usageCharge
+  - If the service contains "Demand" or "kVa" → demandCharge
+  - Otherwise → usageCharge (default)
+- Try to extract the billing period / statement date as YYYY-MM-DD.
+
+Return ONLY valid JSON, no markdown fencing:
+{
+  "billingPeriod": "YYYY-MM-DD",
+  "services": [
+    {
+      "serviceName": "Electricity Metered",
+      "utilityType": "Electricity",
+      "billedAmount": 18300.98,
+      "basicCharge": null,
+      "usageCharge": 18300.98,
+      "demandCharge": null
+    }
+  ]
+}
+
+BILL TEXT:
+${parsedText}
+`;
+
+          let geminiExtraction: {
+            billingPeriod?: string;
+            services: {
+              serviceName: string;
+              utilityType: string;
+              billedAmount: number;
+              basicCharge: number | null;
+              usageCharge: number | null;
+              demandCharge: number | null;
+            }[];
+          };
+
+          try {
+            const geminiResult = await model.generateContent(extractionPrompt);
+            const responseText = geminiResult.response.text();
+            console.log("Ingest Action - Gemini extraction response:", responseText);
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            geminiExtraction = JSON.parse(jsonMatch ? jsonMatch[0] : responseText);
+          } catch (aiError) {
+            console.error("Ingest Action - Gemini extraction failed:", aiError);
+            // Fallback: insert a single zero-charge record so the pipeline doesn't break
+            geminiExtraction = { services: [] };
           }
 
-          // Placeholder for real AI extraction
-          const record = {
-            id: crypto.randomUUID(),
-            utilityAccountId: targetUtilityAccountId,
-            billingPeriod: new Date().toISOString().split("T")[0],
-            amount: "0",
-            basicCharge: "0",
-            usageCharge: "0",
-            demandCharge: "0",
-            usage: "0",
-            pdfUrl: publicUrl,
-          };
-          await db.insert(invoices).values(record);
+          const billingPeriod =
+            geminiExtraction.billingPeriod ||
+            new Date().toISOString().split("T")[0];
+
+          // Fetch existing utility accounts for this building
+          let accounts = await db
+            .select()
+            .from(utilityAccounts)
+            .where(eq(utilityAccounts.buildingId, buildingId));
+
+          const insertedRecords = [];
+
+          if (geminiExtraction.services.length > 0) {
+            // Group extracted services by utilityType
+            const byType: Record<
+              string,
+              (typeof geminiExtraction.services)[number][]
+            > = {};
+            for (const svc of geminiExtraction.services) {
+              if (!byType[svc.utilityType]) byType[svc.utilityType] = [];
+              byType[svc.utilityType].push(svc);
+            }
+
+            for (const [utilityType, services] of Object.entries(byType)) {
+              // Find or create utility account for this type
+              let account = accounts.find((a) => a.type === utilityType);
+              if (!account) {
+                const newId = crypto.randomUUID();
+                const validTypes = [
+                  "Electricity",
+                  "Solar",
+                  "Water",
+                  "Sewerage",
+                  "Assessment Rates",
+                  "CID Levy",
+                ] as const;
+                const safeType = validTypes.includes(
+                  utilityType as (typeof validTypes)[number],
+                )
+                  ? (utilityType as (typeof validTypes)[number])
+                  : "Electricity";
+
+                await db.insert(utilityAccounts).values({
+                  id: newId,
+                  buildingId: buildingId,
+                  type: safeType,
+                  accountNumber: "AUTO-GENERATED",
+                });
+                account = {
+                  id: newId,
+                  buildingId,
+                  type: safeType,
+                  accountNumber: "AUTO-GENERATED",
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                };
+                accounts.push(account);
+              }
+
+              // Aggregate charges for this utility type
+              let totalAmount = 0;
+              let totalBasic = 0;
+              let totalUsage = 0;
+              let totalDemand = 0;
+              for (const svc of services) {
+                totalAmount += svc.billedAmount || 0;
+                totalBasic += svc.basicCharge || 0;
+                totalUsage += svc.usageCharge || 0;
+                totalDemand += svc.demandCharge || 0;
+              }
+
+              const record = {
+                id: crypto.randomUUID(),
+                utilityAccountId: account.id,
+                billingPeriod,
+                amount: totalAmount.toFixed(2),
+                basicCharge: totalBasic.toFixed(2),
+                usageCharge: totalUsage.toFixed(2),
+                demandCharge: totalDemand.toFixed(2),
+                usage: "0",
+                pdfUrl: publicUrl,
+              };
+              await db.insert(invoices).values(record);
+              insertedRecords.push(record);
+              console.log(
+                `Ingest Action - Invoice inserted: ${utilityType} = R${totalAmount.toFixed(2)}`,
+              );
+            }
+          } else {
+            // Fallback: Gemini returned no services, insert zero-charge placeholder
+            console.warn(
+              "Ingest Action - Gemini returned no services, inserting fallback.",
+            );
+            let fallbackAccountId = accounts[0]?.id;
+            if (!fallbackAccountId) {
+              const newId = crypto.randomUUID();
+              await db.insert(utilityAccounts).values({
+                id: newId,
+                buildingId: buildingId,
+                type: "Electricity",
+                accountNumber: "AUTO-GENERATED",
+              });
+              fallbackAccountId = newId;
+            }
+            const record = {
+              id: crypto.randomUUID(),
+              utilityAccountId: fallbackAccountId,
+              billingPeriod,
+              amount: "0",
+              basicCharge: "0",
+              usageCharge: "0",
+              demandCharge: "0",
+              usage: "0",
+              pdfUrl: publicUrl,
+            };
+            await db.insert(invoices).values(record);
+            insertedRecords.push(record);
+          }
+
           extractedData.push({
             fileName: file.name,
             type: "bill-pdf",
-            llamaResult: result,
-            record,
+            llamaResult: parsedText.substring(0, 500),
+            geminiExtraction,
+            records: insertedRecords,
           });
-          console.log("Ingest Action - Invoice record inserted for PDF.");
+          console.log(
+            `Ingest Action - ${insertedRecords.length} invoice(s) inserted for PDF.`,
+          );
         }
       } else if (fileNameLower.endsWith(".csv")) {
         console.log("Ingest Action - Handling CSV file.");

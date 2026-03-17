@@ -130,6 +130,7 @@ export const analyzeUtilityData = inngest.createFunction(
     // 4. Save report
     await step.run("save-report", async () => {
       await db.insert(analysisReports).values({
+        id: crypto.randomUUID(),
         buildingId,
         period,
         totalInvoiceAmount: report.totalInvoiceAmount.toString(),

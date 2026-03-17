@@ -1,13 +1,23 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { Building2, Upload, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { useState, Suspense, useEffect } from "react";
+import {
+  Building2,
+  Upload,
+  ArrowLeft,
+  CheckCircle2,
+  Terminal,
+  Copy,
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ingestAction } from "@/app/(main)/actions/ingest";
 import { FileUpload } from "@/components/ui/file-upload";
 import { getMe } from "@/app/(main)/actions/users";
-import { useEffect } from "react";
 
 function UploadContent() {
   const searchParams = useSearchParams();
@@ -18,6 +28,8 @@ function UploadContent() {
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<string>("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [extractedData, setExtractedData] = useState<any[]>([]);
+  const [showConsole, setShowConsole] = useState(false);
 
   const [user, setUser] = useState<{ role: string } | null>(null);
 
@@ -54,6 +66,10 @@ function UploadContent() {
       if (result.success) {
         setStatus("Ingestion complete! Data persisted to registry.");
         setIsSuccess(true);
+        if (result.extractedData) {
+          setExtractedData(result.extractedData);
+          setShowConsole(true);
+        }
       } else {
         setStatus("Error: " + result.error);
         setIsSuccess(false);
@@ -200,6 +216,76 @@ function UploadContent() {
         <div className="mt-8 text-[10px] font-mono text-slate-400 uppercase tracking-widest text-center">
           Secure Payload Layer: GCS-HNS // AES-256
         </div>
+
+        <AnimatePresence>
+          {extractedData.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="mt-12 mb-12"
+            >
+              <div className="bg-[#0d1117] rounded-xl border border-slate-800 shadow-2xl overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 bg-slate-900/50 border-b border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <div className="p-1.5 rounded-md bg-teal-500/10 text-teal-500">
+                      <Terminal size={14} />
+                    </div>
+                    <div>
+                      <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-200">
+                        Extraction Debug Console
+                      </h3>
+                      <p className="text-[8px] font-mono text-slate-500 uppercase">
+                        Real-time Ingestion Logs // Extracted JSON
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const json = JSON.stringify(extractedData, null, 2);
+                        navigator.clipboard.writeText(json);
+                      }}
+                      className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+                      title="Copy JSON"
+                    >
+                      <Copy size={14} />
+                    </button>
+                    <button
+                      onClick={() => setExtractedData([])}
+                      className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-red-400 transition-colors"
+                      title="Clear Console"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                    <button
+                      onClick={() => setShowConsole(!showConsole)}
+                      className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+                    >
+                      {showConsole ? (
+                        <ChevronUp size={14} />
+                      ) : (
+                        <ChevronDown size={14} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <motion.div
+                  initial={false}
+                  animate={{ height: showConsole ? "auto" : 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 bg-black/40 backdrop-blur-sm">
+                    <pre className="text-[11px] font-mono text-teal-400/90 overflow-x-auto selection:bg-teal-500/20 max-h-[400px]">
+                      {JSON.stringify(extractedData, null, 2)}
+                    </pre>
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       <footer className="mt-20 pt-8 border-t border-slate-200 dark:border-slate-800 text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em] flex flex-col gap-2">

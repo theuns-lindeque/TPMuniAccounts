@@ -53,6 +53,8 @@ export async function ingestAction(formData: FormData) {
   }
 
   try {
+    const extractedData: any[] = [];
+
     for (const file of files) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
@@ -77,13 +79,19 @@ export async function ingestAction(formData: FormData) {
       if (file.name.endsWith(".pdf")) {
         if (documentType === "recovery") {
           // Handle PDF Recovery Report
-          await db.insert(recoveries).values({
+          const record = {
             id: crypto.randomUUID(),
             buildingId: buildingId,
             tenantName: "Bulk PDF Recovery", // Placeholder
             amountBilled: "0",
             period: new Date().toISOString().split("T")[0],
             pdfUrl: publicUrl,
+          };
+          await db.insert(recoveries).values(record);
+          extractedData.push({
+            fileName: file.name,
+            type: "recovery-pdf",
+            data: record,
           });
         } else {
           // Process Municipal Bill with LlamaParse
@@ -97,7 +105,7 @@ export async function ingestAction(formData: FormData) {
             JSON.stringify(result, null, 2),
           );
           // Placeholder for real AI extraction
-          await db.insert(invoices).values({
+          const record = {
             id: crypto.randomUUID(),
             utilityAccountId: buildingId,
             billingPeriod: new Date().toISOString().split("T")[0],
@@ -107,6 +115,13 @@ export async function ingestAction(formData: FormData) {
             demandCharge: "0",
             usage: "0",
             pdfUrl: publicUrl,
+          };
+          await db.insert(invoices).values(record);
+          extractedData.push({
+            fileName: file.name,
+            type: "bill-pdf",
+            llamaResult: result,
+            record,
           });
           console.log("Ingest Action - Invoice record inserted for PDF.");
         }
@@ -119,8 +134,9 @@ export async function ingestAction(formData: FormData) {
           skip_empty_lines: true,
         }) as CSVRecord[];
 
+        const insertedRecords = [];
         for (const record of records) {
-          await db.insert(recoveries).values({
+          const insertData = {
             id: crypto.randomUUID(),
             buildingId: buildingId,
             tenantName: record.Tenant || record.name || "Unknown",
@@ -131,8 +147,15 @@ export async function ingestAction(formData: FormData) {
             solarProduced: record.Solar || record.SolarProduced || "0",
             period: new Date().toISOString().split("T")[0],
             pdfUrl: null, // No PDF for CSV entries
-          });
+          };
+          await db.insert(recoveries).values(insertData);
+          insertedRecords.push(insertData);
         }
+        extractedData.push({
+          fileName: file.name,
+          type: "recovery-csv",
+          records: insertedRecords,
+        });
       }
     }
 
@@ -146,7 +169,7 @@ export async function ingestAction(formData: FormData) {
       });
     }
 
-    return { success: true };
+    return { success: true, extractedData };
   } catch (error: unknown) {
     console.error("Ingestion error:", error);
     return {

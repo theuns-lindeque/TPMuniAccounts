@@ -11,10 +11,10 @@ export default async function PropertyDetailPage({
 }) {
   const { id } = await params;
 
-  // Default: last 6 months
+  // Default: last 12 months
   const end = new Date();
   const start = new Date();
-  start.setMonth(start.getMonth() - 6);
+  start.setMonth(start.getMonth() - 12);
 
   const startDate = start.toISOString().split("T")[0];
   const endDate = end.toISOString().split("T")[0];

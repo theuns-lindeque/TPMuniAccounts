@@ -139,7 +139,7 @@ export default function PropertyDetailClient({
 }) {
   const [invoiceData, setInvoiceData] = useState(initialInvoices);
   const [recoveryData, setRecoveryData] = useState(initialRecoveries);
-  const [selectedPeriod, setSelectedPeriod] = useState(6);
+  const [selectedPeriod, setSelectedPeriod] = useState(12);
   const [isCustom, setIsCustom] = useState(false);
   const [customStart, setCustomStart] = useState(defaultStartDate);
   const [customEnd, setCustomEnd] = useState(defaultEndDate);

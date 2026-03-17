@@ -364,12 +364,27 @@ ${parsedText}
       }
     }
 
+    let targetPeriod = new Date().toISOString().split("T")[0];
+    if (extractedData.length > 0) {
+      // Find the earliest billingPeriod from all inserted records to trigger the analysis for that month
+      const allPeriods: string[] = [];
+      for (const ed of extractedData) {
+        if (ed.records && Array.isArray(ed.records)) {
+          allPeriods.push(...ed.records.map((r: any) => r.billingPeriod || r.period));
+        }
+      }
+      const validPeriods = allPeriods.filter(Boolean).sort();
+      if (validPeriods.length > 0) {
+        targetPeriod = validPeriods[0];
+      }
+    }
+
     if (files.length > 0 && buildingId) {
       await inngest.send({
         name: "app/data.ingested",
         data: {
           buildingId,
-          period: new Date().toISOString().split("T")[0],
+          period: targetPeriod,
         },
       });
     }

@@ -1,5 +1,6 @@
 "use server";
 import { cookies, headers } from "next/headers";
+import jwt from "jsonwebtoken";
 import { getPayload } from "payload";
 import configPromise from "@payload-config";
 import { revalidatePath } from "next/cache";
@@ -8,7 +9,29 @@ export async function getMe() {
   try {
     const payload = await getPayload({ config: configPromise });
     const reqHeaders = await headers();
-    const { user } = await payload.auth({ headers: reqHeaders });
+    let { user } = await payload.auth({ headers: reqHeaders });
+
+    // Fallback if payload.auth fails due to Vercel header stripping or CSRF mismatches
+    if (!user) {
+      const cookieHeader = reqHeaders.get("cookie") || "";
+      const tokenMatch = cookieHeader.match(/payload-token=([^;]+)/);
+      if (tokenMatch && process.env.PAYLOAD_SECRET) {
+        try {
+          const decoded = jwt.verify(tokenMatch[1], process.env.PAYLOAD_SECRET) as any;
+          if (decoded && decoded.collection === "users" && decoded.id) {
+            const fallbackUser = await payload.findByID({
+              collection: "users",
+              id: decoded.id,
+            });
+            if (fallbackUser) {
+              user = fallbackUser;
+            }
+          }
+        } catch (e) {
+          console.error("getMe - Fallback JWT decode failed:", e);
+        }
+      }
+    }
 
     console.log("getMe - User Object Found:", !!user);
     const host = reqHeaders.get("host");

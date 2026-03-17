@@ -27,6 +27,7 @@
     "framer-motion": "^12.36.0",
     "graphql": "^16.13.1",
     "inngest": "^3.52.6",
+    "jsonwebtoken": "^9.0.3",
     "llama-parse": "^0.1.0",
     "lucide-react": "^0.577.0",
     "next": "16.2.0-canary.98",
@@ -42,6 +43,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

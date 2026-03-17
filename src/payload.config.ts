@@ -16,12 +16,20 @@ const serverURL = process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_URL}`
     : process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
 
+const corsDomains = [
+  "https://tp-muni-accounts.vercel.app",
+  "http://localhost:3000",
+  serverURL,
+];
+
 export default buildConfig({
   debug: true,
   admin: {
     user: Users.slug,
   },
   serverURL,
+  cors: corsDomains,
+  csrf: corsDomains,
   editor: lexicalEditor(),
   db: postgresAdapter({
     pool: {

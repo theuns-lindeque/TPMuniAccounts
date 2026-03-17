@@ -24,7 +24,7 @@ export async function getMe() {
               id: decoded.id,
             });
             if (fallbackUser) {
-              user = fallbackUser;
+              user = { ...fallbackUser, collection: "users" } as any;
             }
           }
         } catch (e) {

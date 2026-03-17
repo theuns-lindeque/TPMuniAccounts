@@ -110,12 +110,9 @@ export async function ingestAction(formData: FormData) {
             JSON.stringify(result, null, 2),
           );
 
-          // Concatenate all pages into a single text string
-          const parsedText = Array.isArray(result)
-            ? result.map((page: { text?: string }) => page.text || "").join("\n")
-            : typeof result === "object" && result !== null && "text" in result
-              ? (result as { text: string }).text
-              : String(result);
+          // Extract markdown text from LlamaParse MarkdownResult
+          // LlamaParse returns { markdown: string, job_metadata: {...} }
+          const parsedText = result.markdown || JSON.stringify(result);
 
           console.log("Ingest Action - Parsed text length:", parsedText.length);
 

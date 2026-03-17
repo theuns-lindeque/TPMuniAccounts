@@ -33,9 +33,12 @@ function LoginContent() {
         router.push(redirectTo);
         router.refresh();
       } else {
-        setError(data.errors?.[0]?.message || "Login failed. Please check your credentials.");
+        setError(
+          data.errors?.[0]?.message ||
+            "Login failed. Please check your credentials.",
+        );
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
@@ -119,7 +122,10 @@ function LoginContent() {
               ) : (
                 <>
                   Enter Registry
-                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight
+                    size={16}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
                 </>
               )}
             </button>
@@ -138,7 +144,13 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#fcfcfd] dark:bg-[#0d1117]"><div className="w-8 h-8 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" /></div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#fcfcfd] dark:bg-[#0d1117]">
+          <div className="w-8 h-8 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
+        </div>
+      }
+    >
       <LoginContent />
     </Suspense>
   );

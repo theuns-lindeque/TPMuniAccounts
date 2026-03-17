@@ -1,34 +1,33 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  Building2, 
-  Upload, 
-  FilePieChart, 
-  Settings, 
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  LayoutDashboard,
+  Building2,
+  Upload,
+  FilePieChart,
+  Settings,
   Users,
-  ChevronLeft, 
+  ChevronLeft,
   ChevronRight,
   Sun,
   Moon,
-  Menu,
-  LogOut
-} from 'lucide-react';
-import { useTheme } from 'next-themes';
-import { useRouter } from 'next/navigation';
-import { getMe, logoutUser } from '@/app/(main)/actions/users';
+  LogOut,
+} from "lucide-react";
+import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
+import { getMe, logoutUser } from "@/app/(main)/actions/users";
 
 const menuItems = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Properties', href: '/properties', icon: Building2 },
-  { name: 'Upload', href: '/upload', icon: Upload },
-  { name: 'Reports', href: '/reports', icon: FilePieChart },
-  { name: 'Users', href: '/users', icon: Users, role: ['admin'] },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Properties", href: "/properties", icon: Building2 },
+  { name: "Upload", href: "/upload", icon: Upload },
+  { name: "Reports", href: "/reports", icon: FilePieChart },
+  { name: "Users", href: "/users", icon: Users, role: ["admin"] },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -38,19 +37,19 @@ interface SidebarProps {
 export const Sidebar = ({ onNavigate }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ role: string } | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
-    setMounted(true);
-    getMe().then(setUser);
+    setMounted(true); // eslint-disable-line react-hooks/set-state-in-effect -- intentional SSR hydration pattern
+    getMe().then((u) => setUser(u as { role: string } | null));
   }, []);
 
-  const filteredItems = menuItems.filter(item => {
+  const filteredItems = menuItems.filter((item) => {
     if (!item.role) return true;
-    return item.role.includes(user?.role || '');
+    return item.role.includes(user?.role || "");
   });
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
@@ -59,18 +58,18 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
     try {
       const result = await logoutUser();
       if (result.success) {
-        router.push('/login');
+        router.push("/login");
         router.refresh();
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
   };
 
   return (
     <motion.aside
       initial={false}
-      animate={{ width: isCollapsed ? '80px' : '260px' }}
+      animate={{ width: isCollapsed ? "80px" : "260px" }}
       className="h-screen bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex flex-col relative z-20 group"
     >
       {/* Sidebar Header */}
@@ -86,19 +85,21 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
               <div className="w-6 h-6 border-2 border-teal-500 rounded-sm flex items-center justify-center font-mono font-bold text-teal-500 text-[10px] tracking-tighter shrink-0">
                 TP
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">MuniAccounts</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                MuniAccounts
+              </span>
             </motion.div>
           )}
           {isCollapsed && (
             <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="w-full flex justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full flex justify-center"
             >
-                <div className="w-8 h-8 border-2 border-teal-500 rounded-sm flex items-center justify-center font-mono font-bold text-teal-500 text-xs tracking-tighter shrink-0">
-                    TP
-                </div>
+              <div className="w-8 h-8 border-2 border-teal-500 rounded-sm flex items-center justify-center font-mono font-bold text-teal-500 text-xs tracking-tighter shrink-0">
+                TP
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -107,10 +108,11 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
       {/* Theme Toggle (Top Right) */}
       <div className={`absolute top-4 right-[-14px] z-30`}>
         <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="p-1.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-500 hover:text-teal-500 transition-colors shadow-sm"
         >
-          {mounted && (theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />)}
+          {mounted &&
+            (theme === "dark" ? <Sun size={14} /> : <Moon size={14} />)}
         </button>
       </div>
 
@@ -119,21 +121,28 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
         {filteredItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
-          
+
           return (
-            <Link 
-              key={item.name} 
+            <Link
+              key={item.name}
               href={item.href}
               onClick={() => onNavigate?.()}
             >
-              <div className={`
+              <div
+                className={`
                 flex items-center gap-4 px-3 py-2.5 rounded-md transition-all group/item relative
-                ${isActive 
-                  ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20' 
-                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 border border-transparent'}
-              `}>
-                <Icon size={18} className={`${isActive ? 'text-teal-500' : 'text-slate-400 group-hover/item:text-teal-500'} transition-colors shrink-0`} />
-                
+                ${
+                  isActive
+                    ? "bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20"
+                    : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 border border-transparent"
+                }
+              `}
+              >
+                <Icon
+                  size={18}
+                  className={`${isActive ? "text-teal-500" : "text-slate-400 group-hover/item:text-teal-500"} transition-colors shrink-0`}
+                />
+
                 <AnimatePresence mode="wait">
                   {!isCollapsed && (
                     <motion.span
@@ -148,9 +157,9 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
                 </AnimatePresence>
 
                 {isActive && (
-                  <motion.div 
+                  <motion.div
                     layoutId="active-indicator"
-                    className="absolute left-0 w-1 h-4 bg-teal-500 rounded-r-full" 
+                    className="absolute left-0 w-1 h-4 bg-teal-500 rounded-r-full"
                   />
                 )}
               </div>
@@ -165,7 +174,10 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
           onClick={handleLogout}
           className="w-full flex items-center gap-4 px-3 py-2.5 text-slate-500 hover:text-red-500 hover:bg-red-500/5 dark:hover:bg-red-500/10 rounded-md transition-all group/logout border border-transparent"
         >
-          <LogOut size={18} className="text-slate-400 group-hover/logout:text-red-500 transition-colors shrink-0" />
+          <LogOut
+            size={18}
+            className="text-slate-400 group-hover/logout:text-red-500 transition-colors shrink-0"
+          />
           <AnimatePresence mode="wait">
             {!isCollapsed && (
               <motion.span
@@ -187,7 +199,13 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
           onClick={toggleSidebar}
           className="w-full flex items-center justify-center py-2 text-slate-400 hover:text-teal-500 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-md transition-all"
         >
-          {isCollapsed ? <ChevronRight size={18} /> : <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest"><ChevronLeft size={16} /> Hide Sidebar</span>}
+          {isCollapsed ? (
+            <ChevronRight size={18} />
+          ) : (
+            <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+              <ChevronLeft size={16} /> Hide Sidebar
+            </span>
+          )}
         </button>
       </div>
 

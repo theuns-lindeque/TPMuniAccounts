@@ -20,7 +20,10 @@ export async function getAppSettings() {
   }
 }
 
-export async function updateAppSettings(data: { chatModel?: string; analysisModel?: string }) {
+export async function updateAppSettings(data: {
+  chatModel?: string;
+  analysisModel?: string;
+}) {
   try {
     const settings = await getAppSettings();
     if (!settings) throw new Error("Could not find settings to update");

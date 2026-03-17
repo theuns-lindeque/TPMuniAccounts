@@ -1,6 +1,12 @@
 import { inngest } from "./client";
 import { db } from "@/db";
-import { invoices, recoveries, analysisReports, feedbackLoop, utilityAccounts } from "@/db/schema";
+import {
+  invoices,
+  recoveries,
+  analysisReports,
+  feedbackLoop,
+  utilityAccounts,
+} from "@/db/schema";
 import { eq, and, desc, gte } from "drizzle-orm";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -14,7 +20,7 @@ export const analyzeUtilityData = inngest.createFunction(
     const historicalData = await step.run("fetch-historical-data", async () => {
       const sixMonthsAgo = new Date(period);
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-      const startDate = sixMonthsAgo.toISOString().split('T')[0];
+      const startDate = sixMonthsAgo.toISOString().split("T")[0];
 
       const buildingInvoices = await db
         .select({
@@ -26,12 +32,15 @@ export const analyzeUtilityData = inngest.createFunction(
           type: utilityAccounts.type,
         })
         .from(invoices)
-        .innerJoin(utilityAccounts, eq(invoices.utilityAccountId, utilityAccounts.id))
+        .innerJoin(
+          utilityAccounts,
+          eq(invoices.utilityAccountId, utilityAccounts.id),
+        )
         .where(
           and(
             eq(utilityAccounts.buildingId, buildingId),
-            gte(invoices.billingPeriod, startDate)
-          )
+            gte(invoices.billingPeriod, startDate),
+          ),
         );
 
       const buildingRecoveries = await db
@@ -48,8 +57,8 @@ export const analyzeUtilityData = inngest.createFunction(
         .where(
           and(
             eq(recoveries.buildingId, buildingId),
-            gte(recoveries.period, startDate)
-          )
+            gte(recoveries.period, startDate),
+          ),
         );
 
       return { buildingInvoices, buildingRecoveries };
@@ -60,7 +69,10 @@ export const analyzeUtilityData = inngest.createFunction(
       return await db
         .select()
         .from(feedbackLoop)
-        .innerJoin(analysisReports, eq(feedbackLoop.analysisReportId, analysisReports.id))
+        .innerJoin(
+          analysisReports,
+          eq(feedbackLoop.analysisReportId, analysisReports.id),
+        )
         .where(eq(analysisReports.buildingId, buildingId))
         .orderBy(desc(feedbackLoop.createdAt))
         .limit(10);
@@ -70,9 +82,12 @@ export const analyzeUtilityData = inngest.createFunction(
     const report = await step.run("generate-ai-report", async () => {
       const { appSettings } = await import("@/db/schema");
       const settingsResult = await db.select().from(appSettings).limit(1);
-      const analysisModel = settingsResult[0]?.analysisModel || "gemini-3.1-pro";
+      const analysisModel =
+        settingsResult[0]?.analysisModel || "gemini-3.1-pro";
 
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
+      const genAI = new GoogleGenerativeAI(
+        process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+      );
       const model = genAI.getGenerativeModel({ model: analysisModel });
 
       const prompt = `
@@ -119,12 +134,15 @@ export const analyzeUtilityData = inngest.createFunction(
         period,
         totalInvoiceAmount: report.totalInvoiceAmount.toString(),
         totalRecoveryAmount: report.totalRecoveryAmount.toString(),
-        deficit: (parseFloat(report.totalInvoiceAmount) - parseFloat(report.totalRecoveryAmount)).toString(),
+        deficit: (
+          parseFloat(report.totalInvoiceAmount) -
+          parseFloat(report.totalRecoveryAmount)
+        ).toString(),
         riskLevel: report.riskLevel,
         anomaliesFound: report.risks,
       });
     });
 
     return { success: true, reportId: buildingId }; // Simplified return
-  }
+  },
 );

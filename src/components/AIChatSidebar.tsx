@@ -2,20 +2,11 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  MessageSquare, 
-  X, 
-  Send, 
-  Bot, 
-  User, 
-  ChevronRight, 
-  Sparkles,
-  RefreshCw
-} from "lucide-react";
+import { X, Send, Bot, RefreshCw } from "lucide-react";
 import { chatAction } from "@/app/(main)/actions/chat";
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: string;
 }
@@ -29,16 +20,20 @@ const suggestions = [
   "Analyze electricity recovery for Block A",
   "How are solar charges calculated?",
   "Identify highest municipal deficit",
-  "Summarize last month's utility audit"
+  "Summarize last month's utility audit",
 ];
 
 export const AIChatSidebar = ({ isOpen, onClose }: AIChatSidebarProps) => {
   const [messages, setMessages] = useState<Message[]>([
-    { 
-      role: 'assistant', 
-      content: "Diagnostics Online. I am the TPMuni Analysis Engine. How can I assist with your municipal auditing today?",
-      timestamp: new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })
-    }
+    {
+      role: "assistant",
+      content:
+        "Diagnostics Online. I am the TPMuni Analysis Engine. How can I assist with your municipal auditing today?",
+      timestamp: new Date().toLocaleTimeString("en-ZA", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -55,31 +50,46 @@ export const AIChatSidebar = ({ isOpen, onClose }: AIChatSidebarProps) => {
     if (!messageText || isLoading) return;
 
     const userMsg: Message = {
-      role: 'user',
+      role: "user",
       content: messageText,
-      timestamp: new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString("en-ZA", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
 
     try {
       // Pass history for context
       const response = await chatAction(messageText, messages);
-      
+
       const assistantMsg: Message = {
-        role: 'assistant',
-        content: response || "Analysis complete. No anomalies detected in current query.",
-        timestamp: new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })
+        role: "assistant",
+        content:
+          response ||
+          "Analysis complete. No anomalies detected in current query.",
+        timestamp: new Date().toLocaleTimeString("en-ZA", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       };
-      setMessages(prev => [...prev, assistantMsg]);
-    } catch (error) {
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: "Error: AI System link interrupted. Please check network protocols.", 
-        timestamp: new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' }) 
-      }]);
+      setMessages((prev) => [...prev, assistantMsg]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "Error: AI System link interrupted. Please check network protocols.",
+          timestamp: new Date().toLocaleTimeString("en-ZA", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +100,7 @@ export const AIChatSidebar = ({ isOpen, onClose }: AIChatSidebarProps) => {
       {isOpen && (
         <>
           {/* Mobile Overlay */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -112,14 +122,18 @@ export const AIChatSidebar = ({ isOpen, onClose }: AIChatSidebarProps) => {
                   <Bot size={18} />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-slate-100">Utility AI Consultant</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-slate-100">
+                    Utility AI Consultant
+                  </h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-tighter">System Ready</span>
+                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-tighter">
+                      System Ready
+                    </span>
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={onClose}
                 className="p-2 text-slate-400 hover:text-teal-500 transition-colors"
               >
@@ -128,30 +142,39 @@ export const AIChatSidebar = ({ isOpen, onClose }: AIChatSidebarProps) => {
             </div>
 
             {/* Chat Body */}
-            <div 
+            <div
               ref={scrollRef}
               className="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth custom-scrollbar"
             >
               {messages.map((msg, idx) => (
-                <div 
-                  key={idx} 
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                <div
+                  key={idx}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div className={`max-w-[85%] space-y-1.5`}>
-                    <div className={`
+                    <div
+                      className={`
                       p-3 rounded-xl text-sm leading-relaxed relative
-                      ${msg.role === 'user' 
-                        ? 'bg-teal-500 text-white rounded-tr-none' 
-                        : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-tl-none'}
-                    `}>
+                      ${
+                        msg.role === "user"
+                          ? "bg-teal-500 text-white rounded-tr-none"
+                          : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-tl-none"
+                      }
+                    `}
+                    >
                       {msg.content}
                       {/* Message Tail Overlay for Assistant */}
-                      {msg.role === 'assistant' && (
+                      {msg.role === "assistant" && (
                         <div className="absolute top-0 -left-1 w-2 h-2 bg-slate-100 dark:bg-slate-900 border-l border-t border-slate-200 dark:border-slate-800 rotate-45 transform -translate-x-1/2"></div>
                       )}
                     </div>
-                    <p className={`text-[9px] font-mono text-slate-400 uppercase ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                      {msg.role === 'assistant' ? 'AUDIT_OUTPUT' : 'CLIENT_INPUT'} // {msg.timestamp}
+                    <p
+                      className={`text-[9px] font-mono text-slate-400 uppercase ${msg.role === "user" ? "text-right" : "text-left"}`}
+                    >
+                      {msg.role === "assistant"
+                        ? "AUDIT_OUTPUT"
+                        : "CLIENT_INPUT"}{" "}
+                      {/* {msg.timestamp} */}
                     </p>
                   </div>
                 </div>
@@ -160,7 +183,9 @@ export const AIChatSidebar = ({ isOpen, onClose }: AIChatSidebarProps) => {
                 <div className="flex justify-start">
                   <div className="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-xl rounded-tl-none flex items-center gap-2">
                     <RefreshCw className="w-4 h-4 text-teal-500 animate-spin" />
-                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Processing Data...</span>
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
+                      Processing Data...
+                    </span>
                   </div>
                 </div>
               )}
@@ -182,18 +207,21 @@ export const AIChatSidebar = ({ isOpen, onClose }: AIChatSidebarProps) => {
                 </div>
               )}
 
-              <form 
-                onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSend();
+                }}
                 className="relative"
               >
-                <input 
+                <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Consult AI Engine..."
                   className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg pl-4 pr-12 py-3 text-sm focus:ring-1 focus:ring-teal-500 focus:outline-none transition-all placeholder:text-slate-400"
                 />
-                <button 
+                <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-teal-500 hover:text-teal-600 disabled:opacity-30 disabled:text-slate-400 transition-all"

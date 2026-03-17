@@ -9,39 +9,51 @@ export async function getMe() {
     const payload = await getPayload({ config: configPromise });
     const reqHeaders = await headers();
     const { user } = await payload.auth({ headers: reqHeaders });
-    
-    console.log('getMe - User Object Found:', !!user);
-    const host = reqHeaders.get('host');
-    
+
+    console.log("getMe - User Object Found:", !!user);
+    const host = reqHeaders.get("host");
+
     if (!process.env.PAYLOAD_SECRET) {
-      console.error('getMe - CRITICAL: PAYLOAD_SECRET is missing!');
+      console.error("getMe - CRITICAL: PAYLOAD_SECRET is missing!");
     }
 
     if (user) {
-      console.log(`getMe - Identified User: ${user.email}, Role: ${user.role}, Host: ${host}`);
+      console.log(
+        `getMe - Identified User: ${user.email}, Role: ${user.role}, Host: ${host}`,
+      );
     } else {
-      const cookieHeader = reqHeaders.get('cookie') || '';
+      const cookieHeader = reqHeaders.get("cookie") || "";
       console.log(`getMe - Authentication Failed. Host: ${host}`);
-      console.log('getMe - Headers Dump:');
+      console.log("getMe - Headers Dump:");
       reqHeaders.forEach((v, k) => {
-        if (k.toLowerCase() !== 'cookie' && k.toLowerCase() !== 'authorization') {
+        if (
+          k.toLowerCase() !== "cookie" &&
+          k.toLowerCase() !== "authorization"
+        ) {
           console.log(`  ${k}: ${v}`);
         }
       });
-      
-      console.log(`getMe - All Cookie Names: ${cookieHeader.split(';').map(c => c.split('=')[0].trim()).join(', ')}`);
-      
-      if (cookieHeader.includes('payload-token')) {
+
+      console.log(
+        `getMe - All Cookie Names: ${cookieHeader
+          .split(";")
+          .map((c) => c.split("=")[0].trim())
+          .join(", ")}`,
+      );
+
+      if (cookieHeader.includes("payload-token")) {
         const tokenMatch = cookieHeader.match(/payload-token=([^;]+)/);
         if (tokenMatch) {
-          console.log(`getMe - Found payload-token (length: ${tokenMatch[1].length}). Segment: ${tokenMatch[1].substring(0, 15)}...`);
+          console.log(
+            `getMe - Found payload-token (length: ${tokenMatch[1].length}). Segment: ${tokenMatch[1].substring(0, 15)}...`,
+          );
         }
       }
     }
-    
+
     return user;
   } catch (error) {
-    console.error('getMe - Error:', error);
+    console.error("getMe - Error:", error);
     return null;
   }
 }
@@ -54,8 +66,8 @@ export async function logoutUser() {
 
 async function ensureAdmin() {
   const user = await getMe();
-  if (user?.role !== 'admin') {
-    throw new Error('Unauthorized: Admin access required.');
+  if (user?.role !== "admin") {
+    throw new Error("Unauthorized: Admin access required.");
   }
 }
 
@@ -69,7 +81,12 @@ export async function getUsers() {
   return users.docs;
 }
 
-export async function createUser(data: { email: string; name: string; password?: string, role?: string }) {
+export async function createUser(data: {
+  email: string;
+  name: string;
+  password?: string;
+  role?: string;
+}) {
   try {
     await ensureAdmin();
     const payload = await getPayload({ config: configPromise });
@@ -79,18 +96,25 @@ export async function createUser(data: { email: string; name: string; password?:
         email: data.email,
         name: data.name,
         password: data.password || "TempPass123!", // Default password if not provided
-        role: (data.role as any) || "contributor",
+        role:
+          (data.role as "admin" | "editor" | "contributor") || "contributor",
       },
     });
     revalidatePath("/users");
     return { success: true, user };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Create User Error:", error);
-    return { success: false, error: error.message || "Failed to create user." };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to create user.",
+    };
   }
 }
 
-export async function updateUser(id: string, data: { email?: string; name?: string; password?: string, role?: string }) {
+export async function updateUser(
+  id: string,
+  data: { email?: string; name?: string; password?: string; role?: string },
+) {
   try {
     await ensureAdmin();
     const payload = await getPayload({ config: configPromise });
@@ -101,9 +125,12 @@ export async function updateUser(id: string, data: { email?: string; name?: stri
     });
     revalidatePath("/users");
     return { success: true, user };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update User Error:", error);
-    return { success: false, error: error.message || "Failed to update user." };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update user.",
+    };
   }
 }
 
@@ -117,8 +144,11 @@ export async function deleteUser(id: string) {
     });
     revalidatePath("/users");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Delete User Error:", error);
-    return { success: false, error: error.message || "Failed to delete user." };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete user.",
+    };
   }
 }

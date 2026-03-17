@@ -1,10 +1,11 @@
+/* eslint-disable react-hooks/immutability, react-hooks/exhaustive-deps, prefer-const */
 "use client";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useRef } from "react";
 import { createNoise3D } from "simplex-noise";
 
 interface VortexProps {
-  children?: any;
+  children?: React.ReactNode;
   className?: string;
   containerClassName?: string;
   particleCount?: number;
@@ -23,6 +24,7 @@ export const Vortex = (props: VortexProps) => {
   const particleCount = props.particleCount || 700;
   const particlePropCount = 9;
   const particlePropsLength = particleCount * particlePropCount;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const rangeY = props.rangeY || 100;
   const baseHue = props.baseHue || 220;
   const rangeHue = 100;
@@ -36,9 +38,10 @@ export const Vortex = (props: VortexProps) => {
   const yOff = 0.00125;
   const zOff = 0.0005;
   const tick = useRef(0);
+
   const noise3D = createNoise3D();
-  let particleProps = new Float32Array(particlePropsLength);
-  let center: [number, number] = [0, 0];
+  const particleProps = new Float32Array(particlePropsLength);
+  const centerRef = useRef<[number, number]>([0, 0]);
 
   const lerp = (start: number, end: number, amt: number) => {
     return (1 - amt) * start + amt * end;
@@ -48,17 +51,15 @@ export const Vortex = (props: VortexProps) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    let x, y, vx, vy, life, ttl, speed, radius, hue;
-
-    x = Math.random() * canvas.width;
-    y = Math.random() * canvas.height;
-    vx = 0;
-    vy = 0;
-    life = 0;
-    ttl = 10 + Math.random() * 100;
-    speed = baseSpeed + Math.random() * rangeSpeed;
-    radius = baseRadius + Math.random() * rangeRadius;
-    hue = baseHue + Math.random() * rangeHue;
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    const vx = 0;
+    const vy = 0;
+    const life = 0;
+    const ttl = 10 + Math.random() * 100;
+    const speed = baseSpeed + Math.random() * rangeSpeed;
+    const radius = baseRadius + Math.random() * rangeRadius;
+    const hue = baseHue + Math.random() * rangeHue;
 
     particleProps.set([x, y, vx, vy, life, ttl, speed, radius, hue], i);
   };
@@ -72,7 +73,7 @@ export const Vortex = (props: VortexProps) => {
     ttl: number,
     radius: number,
     hue: number,
-    ctx: CanvasRenderingContext2D
+    ctx: CanvasRenderingContext2D,
   ) => {
     ctx.save();
     ctx.lineCap = "round";
@@ -90,7 +91,7 @@ export const Vortex = (props: VortexProps) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    let i2 = 1 + i,
+    const i2 = 1 + i,
       i3 = 2 + i,
       i4 = 3 + i,
       i5 = 4 + i,
@@ -98,11 +99,18 @@ export const Vortex = (props: VortexProps) => {
       i7 = 6 + i,
       i8 = 7 + i,
       i9 = 8 + i;
-    let n, x, y, vx, vy, life, ttl, speed, x2, y2, radius, hue;
+
+    let n, x, y, life, ttl, speed;
+
+    let vx, vy, x2, y2, radius, hue;
 
     x = particleProps[i];
     y = particleProps[i2];
-    n = noise3D(x * xOff, y * yOff, tick.current * zOff) * noiseSteps * Math.PI * 2;
+    n =
+      noise3D(x * xOff, y * yOff, tick.current * zOff) *
+      noiseSteps *
+      Math.PI *
+      2;
     vx = lerp(particleProps[i3], Math.cos(n), 0.5);
     vy = lerp(particleProps[i4], Math.sin(n), 0.5);
     life = particleProps[i5];
@@ -123,7 +131,9 @@ export const Vortex = (props: VortexProps) => {
     particleProps[i4] = vy;
     particleProps[i5] = life;
 
-    (checkBounds(x, y, canvas) || life > ttl) && initParticle(i);
+    if (checkBounds(x, y, canvas) || life > ttl) {
+      initParticle(i);
+    }
   };
 
   const drawBackground = (ctx: CanvasRenderingContext2D) => {
@@ -148,7 +158,7 @@ export const Vortex = (props: VortexProps) => {
   };
 
   const fadeInOut = (t: number, m: number) => {
-    let hm = 0.5 * m;
+    const hm = 0.5 * m;
     return Math.abs(((t + hm) % m) - hm) / hm;
   };
 
@@ -163,7 +173,7 @@ export const Vortex = (props: VortexProps) => {
         ).getBoundingClientRect();
         canvas.width = width;
         canvas.height = height;
-        center = [0.5 * canvas.width, 0.5 * canvas.height];
+        centerRef.current = [0.5 * canvas.width, 0.5 * canvas.height];
       }
     };
 
@@ -190,13 +200,12 @@ export const Vortex = (props: VortexProps) => {
 
   return (
     <div className={cn("relative h-full w-full", props.containerClassName)}>
-      <div
-        className="absolute inset-0 z-0 h-full w-full"
-        ref={containerRef}
-      >
+      <div className="absolute inset-0 z-0 h-full w-full" ref={containerRef}>
         <canvas ref={canvasRef}></canvas>
       </div>
-      <div className={cn("relative z-10", props.className)}>{props.children}</div>
+      <div className={cn("relative z-10", props.className)}>
+        {props.children}
+      </div>
     </div>
   );
 };

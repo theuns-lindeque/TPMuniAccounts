@@ -18,13 +18,14 @@ function UploadContent() {
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<string>("");
   const [isSuccess, setIsSuccess] = useState(false);
-  const [user, setUser] = useState<any>(null);
+
+  const [user, setUser] = useState<{ role: string } | null>(null);
 
   useEffect(() => {
-    getMe().then(setUser);
+    getMe().then((u) => setUser(u as { role: string } | null));
   }, []);
 
-  const isReadOnly = user?.role === 'contributor';
+  const isReadOnly = user?.role === "contributor";
 
   const handleFileUpload = async (uploadedFiles: File[]) => {
     if (isReadOnly) return;
@@ -35,8 +36,12 @@ function UploadContent() {
   const startIngestion = async () => {
     if (files.length === 0) return;
     setUploading(true);
-    setStatus("Uploading and parsing " + (documentType === 'recovery' ? 'recovery reports' : 'municipal bills') + "...");
-    
+    setStatus(
+      "Uploading and parsing " +
+        (documentType === "recovery" ? "recovery reports" : "municipal bills") +
+        "...",
+    );
+
     const formData = new FormData();
     files.forEach((file) => {
       formData.append("files", file);
@@ -68,10 +73,12 @@ function UploadContent() {
         <div>
           <div className="flex items-center gap-2 text-teal-500 mb-1">
             <Building2 size={14} className="sm:size-4" />
-            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em]">Ingestion Portal</span>
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em]">
+              Ingestion Portal
+            </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            {documentType === 'recovery' ? 'Upload Recovery' : 'Upload Bills'}
+            {documentType === "recovery" ? "Upload Recovery" : "Upload Bills"}
           </h1>
           {isReadOnly && (
             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-amber-500/20 bg-amber-500/5 text-amber-500 text-[9px] font-bold uppercase tracking-wider mt-1">
@@ -80,8 +87,8 @@ function UploadContent() {
           )}
         </div>
         <div className="w-full sm:w-auto">
-          <Link 
-            href="/properties" 
+          <Link
+            href="/properties"
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest rounded transition-all shadow-sm"
           >
             <ArrowLeft size={14} />
@@ -100,16 +107,20 @@ function UploadContent() {
 
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-lg sm:text-xl font-bold mb-2">
-              {documentType === 'recovery' ? 'Submit Recovery Data' : 'Submit Municipal Bills'}
+              {documentType === "recovery"
+                ? "Submit Recovery Data"
+                : "Submit Municipal Bills"}
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {documentType === 'recovery' 
-                ? 'Select CSV or PDF recovery files to process for billing reconciliation.' 
-                : 'Upload scanned municipal bill PDFs for AI-driven extraction and analysis.'}
+              {documentType === "recovery"
+                ? "Select CSV or PDF recovery files to process for billing reconciliation."
+                : "Upload scanned municipal bill PDFs for AI-driven extraction and analysis."}
             </p>
           </div>
 
-          <div className={`border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/30 transition-colors ${!isReadOnly ? 'hover:border-teal-500/30' : 'opacity-50 cursor-not-allowed'}`}>
+          <div
+            className={`border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/30 transition-colors ${!isReadOnly ? "hover:border-teal-500/30" : "opacity-50 cursor-not-allowed"}`}
+          >
             {!isReadOnly ? (
               <FileUpload onChange={handleFileUpload} />
             ) : (
@@ -117,8 +128,13 @@ function UploadContent() {
                 <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400">
                   <Upload size={32} />
                 </div>
-                <p className="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest">Upload Access Restricted</p>
-                <p className="text-[10px] text-slate-500 max-w-[240px] leading-relaxed">Your node profile (CONTRIBUTOR) does not have authorization to ingest new data into the registry.</p>
+                <p className="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest">
+                  Upload Access Restricted
+                </p>
+                <p className="text-[10px] text-slate-500 max-w-[240px] leading-relaxed">
+                  Your node profile (CONTRIBUTOR) does not have authorization to
+                  ingest new data into the registry.
+                </p>
               </div>
             )}
           </div>
@@ -130,7 +146,7 @@ function UploadContent() {
                 disabled={uploading}
                 className={cn(
                   "px-10 py-4 rounded-lg bg-teal-500 hover:bg-teal-600 text-white font-bold uppercase tracking-widest text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center gap-3",
-                  uploading && "opacity-50 cursor-not-allowed scale-[0.98]"
+                  uploading && "opacity-50 cursor-not-allowed scale-[0.98]",
                 )}
               >
                 {uploading ? (
@@ -152,7 +168,7 @@ function UploadContent() {
                 <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                   <CheckCircle2 size={24} />
                 </div>
-                <Link 
+                <Link
                   href="/properties"
                   className="px-8 py-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold uppercase tracking-widest transition-all"
                 >
@@ -163,11 +179,16 @@ function UploadContent() {
 
             {status && (
               <div className="mt-8 flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-900 rounded-full border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className={cn(
-                  "w-1.5 h-1.5 rounded-full shadow-[0_0_8px]",
-                  uploading ? "bg-amber-500 shadow-amber-500/50 animate-pulse" : 
-                  isSuccess ? "bg-emerald-500 shadow-emerald-500/50" : "bg-red-500 shadow-red-500/50"
-                )}></div>
+                <div
+                  className={cn(
+                    "w-1.5 h-1.5 rounded-full shadow-[0_0_8px]",
+                    uploading
+                      ? "bg-amber-500 shadow-amber-500/50 animate-pulse"
+                      : isSuccess
+                        ? "bg-emerald-500 shadow-emerald-500/50"
+                        : "bg-red-500 shadow-red-500/50",
+                  )}
+                ></div>
                 <p className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tighter">
                   System: {status}
                 </p>
@@ -183,7 +204,10 @@ function UploadContent() {
 
       <footer className="mt-20 pt-8 border-t border-slate-200 dark:border-slate-800 text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em] flex flex-col gap-2">
         <div className="flex justify-between">
-          <p>Ingestion Path: {documentType?.toUpperCase()} / {buildingId?.toUpperCase()}</p>
+          <p>
+            Ingestion Path: {documentType?.toUpperCase()} /{" "}
+            {buildingId?.toUpperCase()}
+          </p>
           <p>Node Status: ACTIVE</p>
         </div>
       </footer>
@@ -193,12 +217,18 @@ function UploadContent() {
 
 export default function UploadPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#fcfcfd] dark:bg-[#0d1117]"><div className="w-8 h-8 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" /></div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#fcfcfd] dark:bg-[#0d1117]">
+          <div className="w-8 h-8 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
+        </div>
+      }
+    >
       <UploadContent />
     </Suspense>
   );
 }
 
-function cn(...inputs: any[]) {
+function cn(...inputs: (string | boolean | undefined | null)[]) {
   return inputs.filter(Boolean).join(" ");
 }

@@ -18,17 +18,22 @@ Refer to "Nodes", "Diagnostics", and "Audits".
 Keep responses concise and actionable.
 `;
 
-export async function chatAction(message: string, history: any[]) {
+export async function chatAction(
+  message: string,
+  history: { role: string; content: string }[],
+) {
   try {
     const settings = await getAppSettings();
     const chatModel = settings?.chatModel || "gemini-3-flash";
-    
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || "");
+
+    const genAI = new GoogleGenerativeAI(
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
+    );
     const model = genAI.getGenerativeModel({ model: chatModel });
 
     const chat = model.startChat({
-      history: history.map(m => ({
-        role: m.role === 'user' ? 'user' : 'model',
+      history: history.map((m) => ({
+        role: m.role === "user" ? "user" : "model",
         parts: [{ text: m.content }],
       })),
       generationConfig: {
@@ -37,8 +42,11 @@ export async function chatAction(message: string, history: any[]) {
     });
 
     // Prepend system prompt context if this is a fresh start or ensure it's integrated
-    const prompt = history.length === 1 ? `${SYSTEM_PROMPT}\n\nUser Question: ${message}` : message;
-    
+    const prompt =
+      history.length === 1
+        ? `${SYSTEM_PROMPT}\n\nUser Question: ${message}`
+        : message;
+
     const result = await chat.sendMessage(prompt);
     const response = await result.response;
     return response.text();

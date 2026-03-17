@@ -1,7 +1,6 @@
 import { db } from './src/db/index';
 import { invoices, recoveries } from './src/db/schema';
 import fs from 'fs';
-import path from 'path';
 
 // Manual env loading for tsx
 const envPath = '/Users/theunslindeque/Downloads/Cursor Folder/TPMuniAccounts/.env';
@@ -26,6 +25,7 @@ async function verifyUploadPaths() {
     
     console.log('Testing Invoice (Bill) Insertion...');
     await db.insert(invoices).values({
+      id: crypto.randomUUID(),
       utilityAccountId: buildingId,
       billingPeriod: new Date().toISOString().split('T')[0],
       amount: '123.45',
@@ -35,6 +35,7 @@ async function verifyUploadPaths() {
     
     console.log('Testing Recovery Insertion (with PDF)...');
     await db.insert(recoveries).values({
+      id: crypto.randomUUID(),
       buildingId: buildingId,
       tenantName: 'Verification Tenant',
       amountBilled: '67.89',
@@ -45,6 +46,7 @@ async function verifyUploadPaths() {
     
     console.log('Testing Recovery Insertion (CSV style - no PDF)...');
     await db.insert(recoveries).values({
+      id: crypto.randomUUID(),
       buildingId: buildingId,
       tenantName: 'CSV Tenant',
       amountBilled: '10.00',
@@ -55,8 +57,8 @@ async function verifyUploadPaths() {
 
     console.log('--- ALL VERIFICATIONS PASSED ---');
     process.exit(0);
-  } catch (error: any) {
-    console.error('Verification Failed:', error.message);
+  } catch (error: unknown) {
+    console.error('Verification Failed:', error instanceof Error ? error.message : error);
     process.exit(1);
   }
 }

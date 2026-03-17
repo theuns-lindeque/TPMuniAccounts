@@ -139,10 +139,10 @@ export const feedbackLoop = pgTable("feedback_loop", {
 export const appSettings = pgTable("app_settings", {
   id: text("id").primaryKey(),
   chatModel: varchar("chat_model", { length: 255 })
-    .default("gemini-3-flash")
+    .default("gemini-3-flash-preview")
     .notNull(),
   analysisModel: varchar("analysis_model", { length: 255 })
-    .default("gemini-1.5-pro")
+    .default("gemini-3-flash-preview")
     .notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

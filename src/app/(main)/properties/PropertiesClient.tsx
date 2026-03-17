@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Building2,
   Upload,
@@ -39,6 +40,7 @@ export default function PropertiesClient({
 }: {
   initialBuildings: Building[];
 }) {
+  const router = useRouter();
   const [selectedRegion, setSelectedRegion] =
     useState<(typeof REGIONS)[number]>("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -194,7 +196,8 @@ export default function PropertiesClient({
                 filteredBuildings.map((building) => (
                   <tr
                     key={building.id}
-                    className="group hover:bg-slate-50/30 dark:hover:bg-slate-800/20 transition-all duration-200"
+                    onClick={() => router.push(`/properties/${building.id}`)}
+                    className="group hover:bg-slate-50/30 dark:hover:bg-slate-800/20 transition-all duration-200 cursor-pointer"
                   >
                     <td className="px-6 py-5">
                       <div className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">

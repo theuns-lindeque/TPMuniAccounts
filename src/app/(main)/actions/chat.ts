@@ -24,7 +24,7 @@ export async function chatAction(
 ) {
   try {
     const settings = await getAppSettings();
-    const chatModel = settings?.chatModel || "gemini-3-flash";
+    const chatModel = settings?.chatModel || "gemini-3-flash-preview";
 
     const genAI = new GoogleGenerativeAI(
       process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",

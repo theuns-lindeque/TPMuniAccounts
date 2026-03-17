@@ -58,6 +58,7 @@ export async function ingestAction(formData: FormData) {
     for (const file of files) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
+      const fileNameLower = file.name.toLowerCase();
 
       // Upload to GCS
       const { Storage } = await import("@google-cloud/storage");
@@ -76,7 +77,7 @@ export async function ingestAction(formData: FormData) {
       });
       const publicUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${gcsFilePath}`;
 
-      if (file.name.endsWith(".pdf")) {
+      if (fileNameLower.endsWith(".pdf")) {
         if (documentType === "recovery") {
           // Handle PDF Recovery Report
           const record = {
@@ -125,7 +126,7 @@ export async function ingestAction(formData: FormData) {
           });
           console.log("Ingest Action - Invoice record inserted for PDF.");
         }
-      } else if (file.name.endsWith(".csv")) {
+      } else if (fileNameLower.endsWith(".csv")) {
         console.log("Ingest Action - Handling CSV file.");
         // Process Tenant Recoveries with csv-parse
         const content = buffer.toString();
@@ -155,6 +156,14 @@ export async function ingestAction(formData: FormData) {
           fileName: file.name,
           type: "recovery-csv",
           records: insertedRecords,
+        });
+      } else {
+        // Unsupported format but uploaded to GCS
+        extractedData.push({
+          fileName: file.name,
+          type: "unsupported",
+          publicUrl,
+          message: "Files of this type are uploaded to storage but not natively parsed into the registry.",
         });
       }
     }

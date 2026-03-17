@@ -24,6 +24,7 @@ async function run() {
     const buildingId = `verify-${Date.now()}`;
     
     await db.insert(invoices).values({
+      id: crypto.randomUUID(),
       utilityAccountId: buildingId,
       billingPeriod: new Date().toISOString().split('T')[0],
       amount: '100.00',
@@ -32,6 +33,7 @@ async function run() {
     console.log('Invoice OK');
 
     await db.insert(recoveries).values({
+      id: crypto.randomUUID(),
       buildingId: buildingId,
       tenantName: 'Test',
       amountBilled: '50.00',

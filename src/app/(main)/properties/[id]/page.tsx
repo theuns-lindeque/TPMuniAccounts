@@ -31,6 +31,7 @@ export default async function PropertyDetailPage({
       initialInvoices={result.invoices}
       initialRecoveries={result.recoveries}
       analysisReport={result.analysisReport}
+      documents={result.documents}
       defaultStartDate={startDate}
       defaultEndDate={endDate}
     />

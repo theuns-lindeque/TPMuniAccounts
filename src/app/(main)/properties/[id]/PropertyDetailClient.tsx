@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useMemo, useTransition } from "react";
 import Link from "next/link";
 import {
   Building2,
@@ -17,6 +17,9 @@ import {
   Users,
   Zap,
   Sun,
+  FolderOpen,
+  ExternalLink,
+  File,
 } from "lucide-react";
 import { getPropertyDetail } from "@/app/(main)/actions/property-detail";
 
@@ -64,6 +67,13 @@ interface AnalysisReport {
   deficit: string;
   riskLevel: string;
   anomaliesFound: string[] | null;
+}
+
+interface DocumentItem {
+  name: string;
+  url: string;
+  type: "bill" | "recovery";
+  date: string;
 }
 
 const PERIOD_OPTIONS = [
@@ -115,6 +125,7 @@ export default function PropertyDetailClient({
   initialInvoices,
   initialRecoveries,
   analysisReport,
+  documents,
   defaultStartDate,
   defaultEndDate,
 }: {
@@ -122,6 +133,7 @@ export default function PropertyDetailClient({
   initialInvoices: Invoice[];
   initialRecoveries: Recovery[];
   analysisReport: AnalysisReport | null;
+  documents: DocumentItem[];
   defaultStartDate: string;
   defaultEndDate: string;
 }) {
@@ -765,6 +777,66 @@ export default function PropertyDetailClient({
           </section>
         </div>
       </main>
+
+      {/* ── Documents Card ─────────────────────────────────────────── */}
+      <section className="mt-8">
+        <div className="flex items-center gap-2 mb-4">
+          <FolderOpen size={14} className="text-teal-500" />
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+            Uploaded Documents
+          </h2>
+          <span className="ml-auto text-[9px] font-mono text-slate-400 uppercase tracking-widest">
+            {documents.length} file{documents.length !== 1 && "s"}
+          </span>
+        </div>
+
+        {documents.length > 0 ? (
+          <div className="border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950/50 shadow-sm overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/50">
+            {documents.map((doc, index) => (
+              <a
+                key={`${doc.url}-${index}`}
+                href={doc.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group"
+              >
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-600 group-hover:text-teal-500 group-hover:border-teal-500/30 transition-colors">
+                  <File size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium text-slate-900 dark:text-slate-100 truncate group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                    {doc.name}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span
+                      className={cn(
+                        "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-widest",
+                        doc.type === "bill"
+                          ? "bg-blue-500/10 text-blue-500 border border-blue-500/20"
+                          : "bg-purple-500/10 text-purple-500 border border-purple-500/20",
+                      )}
+                    >
+                      {doc.type === "bill" ? "Municipal Bill" : "Recovery"}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {doc.date}
+                    </span>
+                  </div>
+                </div>
+                <ExternalLink
+                  size={14}
+                  className="flex-shrink-0 text-slate-300 dark:text-slate-700 group-hover:text-teal-500 transition-colors"
+                />
+              </a>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={<FolderOpen size={24} />}
+            message="No documents uploaded yet."
+          />
+        )}
+      </section>
 
       {/* ── Footer ───────────────────────────────────────────────────── */}
       <footer className="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-mono text-slate-400 uppercase tracking-widest">

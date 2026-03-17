@@ -104,6 +104,74 @@ export async function getPropertyDetail(
       .orderBy(desc(analysisReports.createdAt))
       .limit(1);
 
+    // 5. Collect all uploaded documents (PDFs) across all dates
+    const allDocuments: {
+      name: string;
+      url: string;
+      type: "bill" | "recovery";
+      date: string;
+    }[] = [];
+
+    // From invoices (all time, not just filtered range)
+    if (accountIds.length > 0) {
+      for (const accId of accountIds) {
+        const acc = building.utilityAccounts.find((a) => a.id === accId)!;
+        const accInvoicesAll = await db
+          .select({
+            pdfUrl: invoices.pdfUrl,
+            billingPeriod: invoices.billingPeriod,
+          })
+          .from(invoices)
+          .where(eq(invoices.utilityAccountId, accId))
+          .orderBy(desc(invoices.billingPeriod));
+
+        for (const inv of accInvoicesAll) {
+          if (
+            inv.pdfUrl &&
+            !allDocuments.some((d) => d.url === inv.pdfUrl)
+          ) {
+            // Extract filename from GCS URL
+            const urlParts = inv.pdfUrl.split("/");
+            const fileName = decodeURIComponent(
+              urlParts[urlParts.length - 1] || "Document",
+            );
+            allDocuments.push({
+              name: fileName,
+              url: inv.pdfUrl,
+              type: "bill",
+              date: inv.billingPeriod,
+            });
+          }
+        }
+      }
+    }
+
+    // From recoveries (all time)
+    const allRecoveries = await db
+      .select({
+        pdfUrl: recoveries.pdfUrl,
+        period: recoveries.period,
+        tenantName: recoveries.tenantName,
+      })
+      .from(recoveries)
+      .where(eq(recoveries.buildingId, buildingId))
+      .orderBy(desc(recoveries.period));
+
+    for (const rec of allRecoveries) {
+      if (rec.pdfUrl && !allDocuments.some((d) => d.url === rec.pdfUrl)) {
+        const urlParts = rec.pdfUrl.split("/");
+        const fileName = decodeURIComponent(
+          urlParts[urlParts.length - 1] || "Document",
+        );
+        allDocuments.push({
+          name: fileName,
+          url: rec.pdfUrl,
+          type: "recovery",
+          date: rec.period,
+        });
+      }
+    }
+
     // Serialize
     return {
       success: true as const,
@@ -131,6 +199,7 @@ export async function getPropertyDetail(
         period: r.period,
         pdfUrl: r.pdfUrl,
       })),
+      documents: allDocuments,
       analysisReport: latestReport[0]
         ? {
             id: latestReport[0].id,

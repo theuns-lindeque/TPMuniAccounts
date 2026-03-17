@@ -23,7 +23,8 @@ import { getAllBuildingsAction } from "@/app/(main)/actions/buildings";
 function UploadContent() {
   const searchParams = useSearchParams();
   const documentType = searchParams.get("type") || "bill";
-  const initialBuildingId = searchParams.get("buildingId") || "";
+  const rawBuildingId = searchParams.get("buildingId") || "";
+  const initialBuildingId = rawBuildingId === "all" ? "" : rawBuildingId;
 
   const [buildingId, setBuildingId] = useState(initialBuildingId);
   const [buildings, setBuildings] = useState<{ id: string; name: string }[]>(
@@ -61,6 +62,11 @@ function UploadContent() {
 
   const startIngestion = async () => {
     if (files.length === 0) return;
+    if (!buildingId || buildingId === "all") {
+      setStatus("Error: Please select a specific property.");
+      setIsSuccess(false);
+      return;
+    }
     setUploading(true);
     setStatus(
       "Uploading and parsing " +
@@ -195,10 +201,10 @@ function UploadContent() {
             {files.length > 0 && !isSuccess && (
               <button
                 onClick={startIngestion}
-                disabled={uploading || !buildingId}
+                disabled={uploading || !buildingId || buildingId === "all"}
                 className={cn(
                   "px-10 py-4 rounded-lg bg-teal-500 text-white font-bold uppercase tracking-widest text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center gap-3",
-                  (uploading || !buildingId)
+                  (uploading || !buildingId || buildingId === "all")
                     ? "opacity-50 cursor-not-allowed scale-[0.98]"
                     : "hover:bg-teal-600",
                 )}

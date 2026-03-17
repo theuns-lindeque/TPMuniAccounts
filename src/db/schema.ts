@@ -4,6 +4,7 @@ import { relations } from 'drizzle-orm';
 export const utilityTypeEnum = pgEnum('utility_type', ['Electricity', 'Solar', 'Water', 'Sewerage', 'Assessment Rates', 'CID Levy']);
 export const riskLevelEnum = pgEnum('risk_level', ['Low', 'Medium', 'High']);
 export const userRoleEnum = pgEnum('user_role', ['admin', 'editor', 'contributor']);
+export const regionEnum = pgEnum('region', ['Gauteng', 'Eastern Cape', 'Western Cape', 'Students']);
 
 export const buildings = pgTable('buildings', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -12,6 +13,7 @@ export const buildings = pgTable('buildings', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   municipalValue: numeric('municipal_value', { precision: 15, scale: 2 }),
+  region: regionEnum('region').notNull().default('Gauteng'),
 });
 
 export const buildingsRelations = relations(buildings, ({ many }) => ({

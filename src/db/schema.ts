@@ -7,7 +7,7 @@ export const userRoleEnum = pgEnum('user_role', ['admin', 'editor', 'contributor
 export const regionEnum = pgEnum('region', ['Gauteng', 'Eastern Cape', 'Western Cape', 'Students']);
 
 export const buildings = pgTable('buildings', {
-  id: uuid('id').defaultRandom().primaryKey(),
+  id: text('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   address: text('address'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -21,8 +21,8 @@ export const buildingsRelations = relations(buildings, ({ many }) => ({
 }));
 
 export const utilityAccounts = pgTable('utility_accounts', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  buildingId: uuid('building_id').references(() => buildings.id).notNull(),
+  id: text('id').primaryKey(),
+  buildingId: text('building_id').references(() => buildings.id).notNull(),
   accountNumber: varchar('account_number', { length: 255 }).notNull(),
   type: utilityTypeEnum('type').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -37,8 +37,8 @@ export const utilityAccountsRelations = relations(utilityAccounts, ({ one }) => 
 }));
 
 export const invoices = pgTable('invoices', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  utilityAccountId: uuid('utility_account_id').references(() => utilityAccounts.id).notNull(),
+  id: text('id').primaryKey(),
+  utilityAccountId: text('utility_account_id').references(() => utilityAccounts.id).notNull(),
   billingPeriod: date('billing_period').notNull(),
   amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
   basicCharge: numeric('basic_charge', { precision: 12, scale: 2 }),
@@ -51,8 +51,8 @@ export const invoices = pgTable('invoices', {
 });
 
 export const recoveries = pgTable('recoveries', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  buildingId: uuid('building_id').references(() => buildings.id).notNull(),
+  id: text('id').primaryKey(),
+  buildingId: text('building_id').references(() => buildings.id).notNull(),
   tenantName: varchar('tenant_name', { length: 255 }).notNull(),
   amountBilled: numeric('amount_billed', { precision: 12, scale: 2 }).notNull(),
   basicCharge: numeric('basic_charge', { precision: 12, scale: 2 }),
@@ -66,8 +66,8 @@ export const recoveries = pgTable('recoveries', {
 });
 
 export const analysisReports = pgTable('analysis_reports', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  buildingId: uuid('building_id').references(() => buildings.id).notNull(),
+  id: text('id').primaryKey(),
+  buildingId: text('building_id').references(() => buildings.id).notNull(),
   period: date('period').notNull(),
   totalInvoiceAmount: numeric('total_invoice_amount', { precision: 12, scale: 2 }).notNull(),
   totalRecoveryAmount: numeric('total_recovery_amount', { precision: 12, scale: 2 }).notNull(),
@@ -79,8 +79,8 @@ export const analysisReports = pgTable('analysis_reports', {
 });
 
 export const feedbackLoop = pgTable('feedback_loop', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  analysisReportId: uuid('analysis_report_id').references(() => analysisReports.id).notNull(),
+  id: text('id').primaryKey(),
+  analysisReportId: text('analysis_report_id').references(() => analysisReports.id).notNull(),
   fieldCorrected: varchar('field_corrected', { length: 255 }).notNull(),
   oldValue: text('old_value'),
   newValue: text('new_value'),
@@ -91,7 +91,7 @@ export const feedbackLoop = pgTable('feedback_loop', {
 });
 
 export const appSettings = pgTable('app_settings', {
-  id: uuid('id').defaultRandom().primaryKey(),
+  id: text('id').primaryKey(),
   chatModel: varchar('chat_model', { length: 255 }).default('gemini-3-flash').notNull(),
   analysisModel: varchar('analysis_model', { length: 255 }).default('gemini-3.1-pro').notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -99,7 +99,7 @@ export const appSettings = pgTable('app_settings', {
 
 // Payload managed tables (manually defined to force creation via Drizzle)
 export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
+  id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   resetPasswordToken: text('reset_password_token'),
@@ -114,7 +114,7 @@ export const users = pgTable('users', {
 });
 
 export const media = pgTable('media', {
-  id: uuid('id').defaultRandom().primaryKey(),
+  id: text('id').primaryKey(),
   alt: text('alt').notNull(),
   url: text('url'),
   filename: text('filename'),
@@ -128,7 +128,7 @@ export const media = pgTable('media', {
 
 export const usersSessions = pgTable('users_sessions', {
   id: text('id').primaryKey(),
-  parentId: uuid('_parent_id').references(() => users.id).notNull(),
+  parentId: text('_parent_id').references(() => users.id).notNull(),
   order: integer('_order').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   expiresAt: timestamp('expires_at').notNull(),

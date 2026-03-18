@@ -7,58 +7,60 @@ import {
   TrendingUp,
   AlertCircle,
   FileText,
+  Inbox,
 } from "lucide-react";
+import { getDashboardData } from "@/app/(main)/actions/dashboard";
 
-// Mock Data for the demonstration
-const mockReports = [
-  {
-    id: "1",
-    period: "2026-03",
-    totalInvoiceAmount: "125000",
-    totalRecoveryAmount: "118000",
-    deficit: "7000",
-    riskLevel: "High",
-    anomaliesFound: [
-      "Water usage spiked 42% compared to 4% recovery increase",
-      "Electricity recovery gap widened in Block B",
-    ],
-  },
-  {
-    id: "2",
-    period: "2026-02",
-    totalInvoiceAmount: "110000",
-    totalRecoveryAmount: "108000",
-    deficit: "2000",
-    riskLevel: "Low",
-    anomaliesFound: ["Refuse charges aligned with recoveries"],
-  },
-  {
-    id: "3",
-    period: "2026-01",
-    totalInvoiceAmount: "115000",
-    totalRecoveryAmount: "105000",
-    deficit: "10000",
-    riskLevel: "Medium",
-    anomaliesFound: ["HVAC maintenance costs not fully recovered from tenants"],
-  },
-];
+export default async function DashboardPage() {
+  const result = await getDashboardData();
+  
+  if (!result.success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fcfcfd] dark:bg-[#0d1117]">
+        <div className="text-center p-8 border border-red-200 dark:border-red-900/50 rounded-xl bg-red-50 dark:bg-red-900/10">
+          <AlertCircle className="mx-auto h-8 w-8 text-red-500 mb-2" />
+          <h2 className="text-sm font-bold text-red-700 dark:text-red-400 uppercase tracking-widest">
+            ERROR_FETCHING_DATA
+          </h2>
+          <p className="text-xs text-red-600/70 dark:text-red-400/50 mt-1 uppercase font-mono">
+            {result.error}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-const mockChartData = [
-  { month: "Apr 25", invoices: 95000, recoveries: 92000 },
-  { month: "May 25", invoices: 98000, recoveries: 94000 },
-  { month: "Jun 25", invoices: 105000, recoveries: 98000 },
-  { month: "Jul 25", invoices: 112000, recoveries: 100000 },
-  { month: "Aug 25", invoices: 108000, recoveries: 102000 },
-  { month: "Sep 25", invoices: 115000, recoveries: 108000 },
-  { month: "Oct 25", invoices: 120000, recoveries: 112000 },
-  { month: "Nov 25", invoices: 118000, recoveries: 115000 },
-  { month: "Dec 25", invoices: 130000, recoveries: 120000 },
-  { month: "Jan 26", invoices: 115000, recoveries: 105000 },
-  { month: "Feb 26", invoices: 110000, recoveries: 108000 },
-  { month: "Mar 26", invoices: 125000, recoveries: 118000 },
-];
+  const hasData = result.reports.length > 0 || result.chartData.some(d => d.invoices > 0 || d.recoveries > 0);
 
-export default function DashboardPage() {
+  if (!hasData) {
+    return (
+      <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] p-6 font-sans">
+        <header className="mb-8 border-b border-slate-200 dark:border-slate-800 pb-6">
+          <div className="flex items-center gap-2 text-teal-500 mb-1">
+            <LayoutDashboard size={14} />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">System Overview</span>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
+        </header>
+
+        <main className="flex flex-col items-center justify-center h-[50vh] text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl bg-slate-50/30 dark:bg-slate-900/30">
+          <Inbox className="h-12 w-12 text-slate-300 dark:text-slate-700 mb-4" />
+          <h2 className="text-lg font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">NO_DATA_AVAILABLE</h2>
+          <p className="text-xs text-slate-500 mt-2 max-w-xs uppercase leading-relaxed font-mono">
+             Upload municipal bills and recovery reports to see analytics here.
+          </p>
+        </main>
+      </div>
+    );
+  }
+
+  const reportsFormatted = result.reports.map(r => ({
+      ...r,
+      totalInvoiceAmount: r.totalInvoiceAmount.toString(),
+      totalRecoveryAmount: r.totalRecoveryAmount.toString(),
+      deficit: r.deficit.toString(),
+  }));
+
   return (
     <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 p-4 sm:p-6 font-sans">
       <header className="mb-6 sm:mb-8 border-b border-slate-200 dark:border-slate-800 pb-4 sm:pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
@@ -75,10 +77,10 @@ export default function DashboardPage() {
         </div>
         <div className="text-left sm:text-right">
           <p className="text-[10px] sm:text-xs text-slate-500 font-mono uppercase tracking-tighter">
-            BUILDING_ID: ALL_ACTIVE
+            NODE_CLUSTER: AGGREGATE_ALL
           </p>
           <p className="text-[10px] sm:text-xs text-slate-500 font-mono uppercase tracking-tighter">
-            LAST_SYNC: 2026-03-13T22:20
+            TIMESTAMP: {new Date().toISOString().substring(0, 16).replace("T", " ")}
           </p>
         </div>
       </header>
@@ -87,37 +89,46 @@ export default function DashboardPage() {
         {/* Left Column: Trends and Table */}
         <div className="lg:col-span-2 space-y-6">
           <section>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4 px-1">
               <TrendingUp size={14} className="text-teal-500" />
-              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                Financial Performance
+              <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 ">
+                Financial Performance Trends
               </h2>
             </div>
-            <TrendsChart data={mockChartData} />
+            <TrendsChart data={result.chartData} />
           </section>
 
           <section>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4 px-1">
               <FileText size={14} className="text-teal-500" />
-              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                Audit Reports
+              <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                Building Audit History
               </h2>
             </div>
-            <FinancialTable reports={mockReports} />
+            <FinancialTable reports={reportsFormatted} />
           </section>
         </div>
 
         {/* Right Column: Risks Panel */}
         <div className="space-y-6">
           <section className="h-full">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4 px-1">
               <AlertCircle size={14} className="text-teal-500" />
-              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                AI Intelligence
+              <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                AI Intelligence & Risks
               </h2>
             </div>
-            <div className="h-[calc(100vh-250px)]">
-              <RisksPanel report={mockReports[0]} />
+            <div className="lg:sticky lg:top-6">
+              {result.latestReport ? (
+                  <div className="h-[calc(100vh-250px)]">
+                    <RisksPanel report={result.latestReport} />
+                  </div>
+              ) : (
+                <div className="p-8 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 flex flex-col items-center justify-center text-center opacity-60">
+                    <AlertCircle size={24} className="text-slate-300 mb-2" />
+                    <p className="text-[10px] font-mono uppercase text-slate-400">NO_ANOMALIES_DETECTED</p>
+                </div>
+              )}
             </div>
           </section>
         </div>
@@ -130,3 +141,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

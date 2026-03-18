@@ -352,9 +352,9 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
                 value={currency(
                   consumptionInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0).toString()
                 )}
-                icon={<TrendingUp size={16} />}
-                accent="text-blue-500"
-                bg="bg-blue-500"
+                icon={<TrendingUp />}
+                accent="text-blue-600 dark:text-blue-400"
+                bg="bg-blue-500/10"
                 border="border-blue-500/20"
               />
               <KPICard
@@ -362,9 +362,9 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
                 value={currency(
                   consumptionRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0).toString()
                 )}
-                icon={<CircleDollarSign size={16} />}
-                accent="text-emerald-500"
-                bg="bg-emerald-500"
+                icon={<CircleDollarSign />}
+                accent="text-emerald-600 dark:text-emerald-400"
+                bg="bg-emerald-500/10"
                 border="border-emerald-500/20"
               />
               <KPICard
@@ -375,9 +375,9 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
                     consumptionInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0)
                   ).toString()
                 )}
-                icon={<ShieldCheck size={16} />}
-                accent="text-teal-500"
-                bg="bg-teal-500"
+                icon={<ShieldCheck />}
+                accent="text-teal-600 dark:text-teal-400"
+                bg="bg-teal-500/10"
                 border="border-teal-500/20"
               />
               <KPICard
@@ -387,9 +387,9 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
                   const recovery = consumptionRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0);
                   return cost > 0 ? `${((recovery / cost) * 100).toFixed(1)}%` : "0.0%";
                 })()}
-                icon={<TrendingUp size={16} />}
-                accent="text-indigo-500"
-                bg="bg-indigo-500"
+                icon={<TrendingUp />}
+                accent="text-indigo-600 dark:text-indigo-400"
+                bg="bg-indigo-500/10"
                 border="border-indigo-500/20"
               />
             </div>
@@ -411,9 +411,9 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
                 value={currency(
                   fixedInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0).toString()
                 )}
-                icon={<TrendingDown size={16} />}
-                accent="text-slate-500"
-                bg="bg-slate-500"
+                icon={<TrendingDown />}
+                accent="text-slate-600 dark:text-slate-400"
+                bg="bg-slate-500/10"
                 border="border-slate-500/20"
               />
               <KPICard
@@ -421,9 +421,9 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
                 value={currency(
                   fixedRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0).toString()
                 )}
-                icon={<CircleDollarSign size={16} />}
-                accent="text-slate-500"
-                bg="bg-slate-500"
+                icon={<CircleDollarSign />}
+                accent="text-slate-600 dark:text-slate-400"
+                bg="bg-slate-500/10"
                 border="border-slate-500/20"
               />
               <KPICard
@@ -434,9 +434,9 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
                     fixedRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0)
                   ).toString()
                 )}
-                icon={<CircleDollarSign size={16} />}
-                accent="text-rose-500"
-                bg="bg-rose-500"
+                icon={<CircleDollarSign />}
+                accent="text-rose-600 dark:text-rose-400"
+                bg="bg-rose-500/10"
                 border="border-rose-500/20"
               />
             </div>
@@ -999,18 +999,28 @@ function KPICard({
   return (
     <div
       className={cn(
-        "rounded-xl border p-4 sm:p-5 transition-all relative overflow-hidden",
-        bg,
+        "rounded-xl border p-4 sm:p-5 transition-all relative overflow-hidden group",
+        "bg-white dark:bg-slate-900 shadow-sm hover:shadow-md",
         border,
       )}
     >
-      <div className="absolute top-3 right-3 opacity-10">{icon}</div>
-      <div className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-        {label}
+      <div className={cn(
+        "absolute -top-2 -right-2 w-16 h-16 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity rounded-full",
+        bg
+      )} />
+      
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          {label}
+        </div>
+        <div className={cn("p-1.5 rounded-lg opacity-80", bg, accent)}>
+          {React.cloneElement(icon as React.ReactElement<any>, { size: 14 })}
+        </div>
       </div>
+
       <div
         className={cn(
-          "text-lg sm:text-xl font-mono font-bold tracking-tight",
+          "text-xl sm:text-2xl font-mono font-bold tracking-tight",
           accent,
         )}
       >

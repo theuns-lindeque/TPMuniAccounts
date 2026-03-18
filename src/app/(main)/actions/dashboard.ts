@@ -57,53 +57,63 @@ export async function getDashboardData() {
         return 0; 
     });
 
-    // 3. Fetch analysis reports to group for the table
-    const rawReports = await db.query.analysisReports.findMany({
-      orderBy: [desc(analysisReports.period)],
+    // 3. Fetch ALL invoices and recoveries to build dynamic table rows
+    const [allInvoicesTable, allRecoveriesTable] = await Promise.all([
+      db.select().from(invoices),
+      db.select().from(recoveries),
+    ]);
+
+    const tableMap: Record<string, any> = {};
+
+    allInvoicesTable.forEach((inv) => {
+      const p = inv.billingPeriod.substring(0, 7); // YYYY-MM
+      if (!tableMap[p]) {
+        tableMap[p] = { period: p, invoices: 0, recoveries: 0 };
+      }
+      tableMap[p].invoices += parseFloat(inv.amount || "0");
     });
 
-    const reportGroups: Record<string, any> = {};
+    allRecoveriesTable.forEach((rec) => {
+      const p = rec.period.substring(0, 7); // YYYY-MM
+      if (!tableMap[p]) {
+        tableMap[p] = { period: p, invoices: 0, recoveries: 0 };
+      }
+      tableMap[p].recoveries += parseFloat(rec.amountBilled || "0");
+    });
 
-    rawReports.forEach((r) => {
-      const p = r.period.substring(0, 7); // YYYY-MM
-      if (!reportGroups[p]) {
-        reportGroups[p] = {
-          id: r.id, // Use the latest ID as reference
-          period: p,
-          totalInvoiceAmount: 0,
-          totalRecoveryAmount: 0,
-          deficit: 0,
-          riskLevel: "Low",
+    // Convert to array, calculate risk/deficit, sort descending by period, and take the top 20
+    const aggregatedReports = Object.values(tableMap)
+      .map((row) => {
+        const d = row.invoices - row.recoveries;
+        let risk = "Low";
+        
+        // Define risk thresholds
+        if (row.invoices > 0 && row.recoveries === 0) {
+          risk = "High"; // Billed but nothing recovered yet
+        } else if (d > row.invoices * 0.1) {
+          risk = "High"; // Deficit > 10%
+        } else if (d > 0) {
+          risk = "Medium"; // Some deficit
+        }
+
+        return {
+          id: `agg-${row.period}`,
+          period: row.period,
+          totalInvoiceAmount: row.invoices,
+          totalRecoveryAmount: row.recoveries,
+          deficit: d,
+          riskLevel: risk,
           anomaliesFound: [],
         };
-      }
-
-      reportGroups[p].totalInvoiceAmount += Number(r.totalInvoiceAmount);
-      reportGroups[p].totalRecoveryAmount += Number(r.totalRecoveryAmount);
-      reportGroups[p].deficit += Number(r.deficit);
-
-      // Determine highest risk level
-      const risks = { Low: 1, Medium: 2, High: 3 };
-      const currentRisk =
-        risks[r.riskLevel as keyof typeof risks] || 1;
-      const groupRisk =
-        risks[reportGroups[p].riskLevel as keyof typeof risks] || 1;
-
-      if (currentRisk > groupRisk) {
-        reportGroups[p].riskLevel = r.riskLevel;
-      }
-
-      if (r.anomaliesFound && Array.isArray(r.anomaliesFound)) {
-        reportGroups[p].anomaliesFound.push(...r.anomaliesFound);
-      }
-    });
-
-    // Convert to array, sort descending by period, and take the top 20
-    const aggregatedReports = Object.values(reportGroups)
+      })
       .sort((a, b) => b.period.localeCompare(a.period))
       .slice(0, 20);
 
-    // 4. Get the latest record for Risks Panel (we can just use the first raw report)
+    // 4. Get the latest record from analysisReports for the Risks Panel
+    const rawReports = await db.query.analysisReports.findMany({
+      orderBy: [desc(analysisReports.period)],
+      limit: 1,
+    });
     const latestReport = rawReports[0] || null;
 
     return {

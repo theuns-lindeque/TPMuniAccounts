@@ -119,7 +119,7 @@ export async function ingestAction(formData: FormData) {
           // ── Gemini extraction: pull real charges from bill text ──────
           const { GoogleGenerativeAI } = await import("@google/generative-ai");
           const { appSettings, utilityAccounts } = await import("@/db/schema");
-          const { eq } = await import("drizzle-orm");
+          const { eq, and } = await import("drizzle-orm");
 
           const settingsResult = await db.select().from(appSettings).limit(1);
           const modelName =
@@ -272,22 +272,50 @@ ${parsedText}
                 totalDemand += svc.demandCharge || 0;
               }
 
-              const record = {
-                id: crypto.randomUUID(),
-                utilityAccountId: account.id,
-                billingPeriod,
-                amount: totalAmount.toFixed(2),
-                basicCharge: totalBasic.toFixed(2),
-                usageCharge: totalUsage.toFixed(2),
-                demandCharge: totalDemand.toFixed(2),
-                usage: "0",
-                pdfUrl: publicUrl,
-              };
-              await db.insert(invoices).values(record);
-              insertedRecords.push(record);
-              console.log(
-                `Ingest Action - Invoice inserted: ${utilityType} = R${totalAmount.toFixed(2)}`,
-              );
+              // ── Upsert Logic ──────────────────────────────────────────────
+              const existingInvoice = await db.query.invoices.findFirst({
+                where: and(
+                  eq(invoices.utilityAccountId, account.id),
+                  eq(invoices.billingPeriod, billingPeriod),
+                ),
+              });
+
+              if (existingInvoice) {
+                // Update existing record
+                await db
+                  .update(invoices)
+                  .set({
+                    amount: totalAmount.toFixed(2),
+                    basicCharge: totalBasic.toFixed(2),
+                    usageCharge: totalUsage.toFixed(2),
+                    demandCharge: totalDemand.toFixed(2),
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(invoices.id, existingInvoice.id));
+                
+                insertedRecords.push({ ...existingInvoice, amount: totalAmount.toFixed(2) });
+                console.log(
+                  `Ingest Action - Invoice UPDATED: ${utilityType} = R${totalAmount.toFixed(2)}`,
+                );
+              } else {
+                // Insert new record
+                const record = {
+                  id: crypto.randomUUID(),
+                  utilityAccountId: account.id,
+                  billingPeriod,
+                  amount: totalAmount.toFixed(2),
+                  basicCharge: totalBasic.toFixed(2),
+                  usageCharge: totalUsage.toFixed(2),
+                  demandCharge: totalDemand.toFixed(2),
+                  usage: "0",
+                  pdfUrl: publicUrl,
+                };
+                await db.insert(invoices).values(record);
+                insertedRecords.push(record);
+                console.log(
+                  `Ingest Action - Invoice inserted: ${utilityType} = R${totalAmount.toFixed(2)}`,
+                );
+              }
             }
           } else {
             // Fallback: Gemini returned no services, insert zero-charge placeholder

@@ -135,16 +135,16 @@ You are a South African municipal bill parser. Extract EVERY service/charge line
 
 IMPORTANT RULES:
 - Use the "Billed Amount" column (VAT exclusive). Do NOT use Billed VAT, Closing Balance, or any VAT-inclusive amount.
-- Map each service to one of these utility types: "Electricity", "Solar", "Water", "Sewerage", "Assessment Rates", "CID Levy".
-  - "Electricity Metered", "Electricity Basic" → "Electricity"
-  - "Water Metered", "Water Basic" → "Water"
-  - "Sanitation Basic", "Sanitation", "Sewerage" → "Sewerage"
-  - "Property Rates", "Assessment Rates", "Rates" → "Assessment Rates"
-  - "Waste Disposal", "Refuse" → "CID Levy"
-  - "Solar" → "Solar"
+- Map each service to one of:
+  - Electricity (Consumption)
+  - Water (Consumption)
+  - Sewerage (Consumption)
+  - Refuse (Consumption - includes Waste, Refuse, Bin removals)
+  - Assessment Rates (Fixed)
+  - CID Levy (Fixed - includes Improvement District)
 - For each service line, classify the charge:
-  - If the service contains "Basic" → basicCharge
-  - If the service contains "Metered" or "Usage" → usageCharge
+  - If the service contains "Basic" or "Fixed" → basicCharge
+  - If the service contains "Metered", "Usage", or "Consumption" → usageCharge
   - If the service contains "Demand" or "kVa" → demandCharge
   - Otherwise → usageCharge (default)
 - Try to extract the billing period / statement date as YYYY-MM-DD.
@@ -159,6 +159,14 @@ Return ONLY valid JSON, no markdown fencing:
       "billedAmount": 18300.98,
       "basicCharge": null,
       "usageCharge": 18300.98,
+      "demandCharge": null
+    },
+    {
+      "serviceName": "Refuse Charge",
+      "utilityType": "Refuse",
+      "billedAmount": 213.30,
+      "basicCharge": null,
+      "usageCharge": 213.30,
       "demandCharge": null
     }
   ]
@@ -227,6 +235,7 @@ ${parsedText}
                   "Sewerage",
                   "Assessment Rates",
                   "CID Levy",
+                  "Refuse",
                 ] as const;
                 const safeType = validTypes.includes(
                   utilityType as (typeof validTypes)[number],

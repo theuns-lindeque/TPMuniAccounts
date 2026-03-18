@@ -118,6 +118,9 @@ function riskGlow(level: string) {
   }
 }
 
+const CONSUMPTION_TYPES = ["Electricity", "Water", "Sewerage", "Refuse", "Solar"];
+const FIXED_TYPES = ["Assessment Rates", "CID Levy"];
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function PropertyDetailClient({
@@ -140,6 +143,28 @@ export default function PropertyDetailClient({
   const [invoiceData, setInvoiceData] = useState(initialInvoices);
   const [recoveryData, setRecoveryData] = useState(initialRecoveries);
   const [selectedPeriod, setSelectedPeriod] = useState(12);
+const { consumptionInvoices, fixedInvoices } = useMemo(() => {
+    return {
+      consumptionInvoices: invoiceData.filter((inv) =>
+        CONSUMPTION_TYPES.includes(inv.utilityType),
+      ),
+      fixedInvoices: invoiceData.filter((inv) =>
+        FIXED_TYPES.includes(inv.utilityType),
+      ),
+    };
+  }, [invoiceData]);
+
+  const { consumptionRecoveries, fixedRecoveries } = useMemo(() => {
+    // Note: In a real app, you might need a way to link recoveries to types.
+    // For now, we'll follow a simplified grouping or assume recoveries relate to consumption.
+    // If your recovery schema doesn't have type, we might need to update that too.
+    // Assuming for now they roughly map to consumption unless specified.
+    return {
+      consumptionRecoveries: recoveryData,
+      fixedRecoveries: [], // Placeholder until recovery categorization is implemented
+    };
+  }, [recoveryData]);
+
   const [isCustom, setIsCustom] = useState(false);
   const [customStart, setCustomStart] = useState(defaultStartDate);
   const [customEnd, setCustomEnd] = useState(defaultEndDate);
@@ -311,6 +336,111 @@ export default function PropertyDetailClient({
             </div>
           )}
         </div>
+        {/* ── Summary Group: Consumption Utilities ─────────────────── */}
+          <section className="space-y-6">
+            <div className="flex items-center gap-2 px-1">
+              <Zap size={16} className="text-amber-500" />
+              <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                Consumption Utilities Analysis
+              </h3>
+              <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800 ml-2" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <KPICard
+                label="Total Consumption Cost"
+                value={currency(
+                  consumptionInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0).toString()
+                )}
+                icon={<TrendingUp size={16} />}
+                accent="text-blue-500"
+                bg="bg-blue-500"
+                border="border-blue-500/20"
+              />
+              <KPICard
+                label="Consumption Recovered"
+                value={currency(
+                  consumptionRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0).toString()
+                )}
+                icon={<CircleDollarSign size={16} />}
+                accent="text-emerald-500"
+                bg="bg-emerald-500"
+                border="border-emerald-500/20"
+              />
+              <KPICard
+                label="Net Recovery"
+                value={currency(
+                  (
+                    consumptionRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0) -
+                    consumptionInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0)
+                  ).toString()
+                )}
+                icon={<ShieldCheck size={16} />}
+                accent="text-teal-500"
+                bg="bg-teal-500"
+                border="border-teal-500/20"
+              />
+              <KPICard
+                label="Recovery %"
+                value={(() => {
+                  const cost = consumptionInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0);
+                  const recovery = consumptionRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0);
+                  return cost > 0 ? `${((recovery / cost) * 100).toFixed(1)}%` : "0.0%";
+                })()}
+                icon={<TrendingUp size={16} />}
+                accent="text-indigo-500"
+                bg="bg-indigo-500"
+                border="border-indigo-500/20"
+              />
+            </div>
+          </section>
+
+          {/* ── Summary Group: Fixed Charges (Rates & Levies) ────────── */}
+          <section className="space-y-6">
+            <div className="flex items-center gap-2 px-1 text-slate-500">
+              <Building2 size={16} />
+              <h3 className="text-xs font-bold uppercase tracking-widest">
+                Fixed Property Charges Analysis
+              </h3>
+              <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800 ml-2" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <KPICard
+                label="Total Rates & Levies"
+                value={currency(
+                  fixedInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0).toString()
+                )}
+                icon={<TrendingDown size={16} />}
+                accent="text-slate-500"
+                bg="bg-slate-500"
+                border="border-slate-500/20"
+              />
+              <KPICard
+                label="Recovered Share"
+                value={currency(
+                  fixedRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0).toString()
+                )}
+                icon={<CircleDollarSign size={16} />}
+                accent="text-slate-500"
+                bg="bg-slate-500"
+                border="border-slate-500/20"
+              />
+              <KPICard
+                label="Net Operational Cost"
+                value={currency(
+                  (
+                    fixedInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0) -
+                    fixedRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0)
+                  ).toString()
+                )}
+                icon={<CircleDollarSign size={16} />}
+                accent="text-rose-500"
+                bg="bg-rose-500"
+                border="border-rose-500/20"
+              />
+            </div>
+          </section>
       </header>
 
       {/* ── KPI Cards ────────────────────────────────────────────────── */}

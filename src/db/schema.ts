@@ -19,6 +19,7 @@ export const utilityTypeEnum = pgEnum("utility_type", [
   "Sewerage",
   "Assessment Rates",
   "CID Levy",
+  "Refuse",
 ]);
 export const riskLevelEnum = pgEnum("risk_level", ["Low", "Medium", "High"]);
 export const userRoleEnum = pgEnum("user_role", [

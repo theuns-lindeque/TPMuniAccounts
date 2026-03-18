@@ -84,22 +84,109 @@ export async function ingestAction(formData: FormData) {
 
       if (fileNameLower.endsWith(".pdf")) {
         if (documentType === "recovery") {
-          // Handle PDF Recovery Report
-          const record = {
-            id: crypto.randomUUID(),
-            buildingId: buildingId,
-            tenantName: "Bulk PDF Recovery", // Placeholder
-            amountBilled: "0",
-            period: new Date().toISOString().split("T")[0],
-            pdfUrl: publicUrl,
-          };
-          await db.insert(recoveries).values(record);
-          const signedUrl = await getSignedUrl(publicUrl);
+          // Process PDF Recovery Report with LlamaParse
+          const parser = new LlamaParse({ apiKey });
+          const result = await parser.parseFile(file);
+          const parsedText = result.markdown || JSON.stringify(result);
+          console.log("Ingest Action - LlamaParse text extracted for recovery.");
+
+          const { GoogleGenerativeAI } = await import("@google/generative-ai");
+          const { appSettings } = await import("@/db/schema");
+          const { eq, and } = await import("drizzle-orm");
+
+          const settingsResult = await db.select().from(appSettings).limit(1);
+          const modelName = settingsResult[0]?.analysisModel || "gemini-3-flash-preview";
+          const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
+          const model = genAI.getGenerativeModel({ model: modelName });
+
+          const extractionPrompt = `
+You are a South African commercial property recovery report parser. Extract EVERY tenant recovery line from the text.
+IMPORTANT RULES:
+- Use the Billed Amount / Total column (excluding VAT if possible).
+- Extract tenantName, amountBilled, basicCharge, usageCharge, demandCharge, solarProduced.
+- Try to extract the billing period from the report header as YYYY-MM-DD (e.g., if it says 2025/10/01 to 2025/11/01, use "2025-10-01" or the representative month).
+
+Return ONLY valid JSON, no markdown fencing:
+{
+  "period": "YYYY-MM-DD",
+  "recoveries": [
+    {
+       "tenantName": "Shop 1",
+       "amountBilled": 1500.00,
+       "basicCharge": 100.00,
+       "usageCharge": 1400.00,
+       "demandCharge": 0,
+       "solarProduced": 0
+    }
+  ]
+}
+
+REPORT TEXT:
+${parsedText}
+`;
+          let geminiExtraction: any;
+          try {
+            const geminiResult = await model.generateContent(extractionPrompt);
+            const responseText = geminiResult.response.text();
+            console.log("Ingest Action - Gemini recovery response:", responseText);
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            geminiExtraction = JSON.parse(jsonMatch ? jsonMatch[0] : responseText);
+          } catch (aiError) {
+            console.error("Ingest Action - Gemini extraction failed for recovery:", aiError);
+            geminiExtraction = { recoveries: [] };
+          }
+
+          const period = geminiExtraction.period || new Date().toISOString().split("T")[0];
+          const recoveriesList = geminiExtraction.recoveries || [];
+          const insertedRecords = [];
+
+          for (const rec of recoveriesList) {
+            const existingRec = await db.query.recoveries.findFirst({
+              where: and(
+                eq(recoveries.buildingId, buildingId),
+                eq(recoveries.tenantName, rec.tenantName),
+                eq(recoveries.period, period)
+              )
+            });
+
+            if (existingRec) {
+              await db.update(recoveries).set({
+                amountBilled: rec.amountBilled?.toFixed(2) || "0",
+                basicCharge: rec.basicCharge?.toFixed(2) || "0",
+                usageCharge: rec.usageCharge?.toFixed(2) || "0",
+                demandCharge: rec.demandCharge?.toFixed(2) || "0",
+                solarProduced: rec.solarProduced?.toFixed(2) || "0",
+                pdfUrl: publicUrl,
+                updatedAt: new Date()
+              }).where(eq(recoveries.id, existingRec.id));
+              
+              insertedRecords.push({ ...existingRec, pdfUrl: publicUrl });
+            } else {
+              const insertData = {
+                id: crypto.randomUUID(),
+                buildingId,
+                tenantName: rec.tenantName || "Unknown",
+                amountBilled: rec.amountBilled?.toFixed(2) || "0",
+                basicCharge: rec.basicCharge?.toFixed(2) || "0",
+                usageCharge: rec.usageCharge?.toFixed(2) || "0",
+                demandCharge: rec.demandCharge?.toFixed(2) || "0",
+                solarProduced: rec.solarProduced?.toFixed(2) || "0",
+                period,
+                pdfUrl: publicUrl,
+              };
+              await db.insert(recoveries).values(insertData);
+              insertedRecords.push(insertData);
+            }
+          }
+
           extractedData.push({
             fileName: file.name,
             type: "recovery-pdf",
-            data: { ...record, pdfUrl: signedUrl },
+            llamaResult: parsedText.substring(0, 500),
+            geminiExtraction,
+            records: await Promise.all(insertedRecords.map(async r => ({ ...r, pdfUrl: await getSignedUrl(r.pdfUrl) })))
           });
+          console.log(`Ingest Action - ${insertedRecords.length} recovery records upserted for PDF.`);
         } else {
           // Process Municipal Bill with LlamaParse
           const parser = new LlamaParse({

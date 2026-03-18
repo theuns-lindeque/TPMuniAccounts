@@ -57,31 +57,73 @@ export async function getDashboardData() {
         return 0; 
     });
 
-    // 3. Fetch analysis reports for the table (latest 20)
-    const reports = await db.query.analysisReports.findMany({
+    // 3. Fetch analysis reports to group for the table
+    const rawReports = await db.query.analysisReports.findMany({
       orderBy: [desc(analysisReports.period)],
-      limit: 20,
     });
 
-    // 4. Get the latest record for Risks Panel
-    const latestReport = reports[0] || null;
+    const reportGroups: Record<string, any> = {};
+
+    rawReports.forEach((r) => {
+      const p = r.period.substring(0, 7); // YYYY-MM
+      if (!reportGroups[p]) {
+        reportGroups[p] = {
+          id: r.id, // Use the latest ID as reference
+          period: p,
+          totalInvoiceAmount: 0,
+          totalRecoveryAmount: 0,
+          deficit: 0,
+          riskLevel: "Low",
+          anomaliesFound: [],
+        };
+      }
+
+      reportGroups[p].totalInvoiceAmount += Number(r.totalInvoiceAmount);
+      reportGroups[p].totalRecoveryAmount += Number(r.totalRecoveryAmount);
+      reportGroups[p].deficit += Number(r.deficit);
+
+      // Determine highest risk level
+      const risks = { Low: 1, Medium: 2, High: 3 };
+      const currentRisk =
+        risks[r.riskLevel as keyof typeof risks] || 1;
+      const groupRisk =
+        risks[reportGroups[p].riskLevel as keyof typeof risks] || 1;
+
+      if (currentRisk > groupRisk) {
+        reportGroups[p].riskLevel = r.riskLevel;
+      }
+
+      if (r.anomaliesFound && Array.isArray(r.anomaliesFound)) {
+        reportGroups[p].anomaliesFound.push(...r.anomaliesFound);
+      }
+    });
+
+    // Convert to array, sort descending by period, and take the top 20
+    const aggregatedReports = Object.values(reportGroups)
+      .sort((a, b) => b.period.localeCompare(a.period))
+      .slice(0, 20);
+
+    // 4. Get the latest record for Risks Panel (we can just use the first raw report)
+    const latestReport = rawReports[0] || null;
 
     return {
       success: true as const,
-      reports: reports.map(r => ({
+      reports: aggregatedReports.map((r) => ({
         id: r.id,
-        period: r.period.substring(0, 7), // YYYY-MM
+        period: r.period,
         totalInvoiceAmount: r.totalInvoiceAmount,
         totalRecoveryAmount: r.totalRecoveryAmount,
         deficit: r.deficit,
         riskLevel: r.riskLevel,
-        anomaliesFound: r.anomaliesFound as string[] | null,
+        anomaliesFound: r.anomaliesFound,
       })),
       chartData,
-      latestReport: latestReport ? {
-          id: latestReport.id,
-          anomaliesFound: latestReport.anomaliesFound as string[] | null,
-      } : null,
+      latestReport: latestReport
+        ? {
+            id: latestReport.id,
+            anomaliesFound: latestReport.anomaliesFound as string[] | null,
+          }
+        : null,
     };
   } catch (error) {
     console.error("Dashboard data fetch error:", error);

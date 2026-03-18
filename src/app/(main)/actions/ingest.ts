@@ -150,10 +150,12 @@ IMPORTANT RULES:
   - If the service contains "Demand" or "kVa" → demandCharge
   - Otherwise → usageCharge (default)
 - Try to extract the billing period / statement date as YYYY-MM-DD.
+- Extract any municipal account numbers, contract accounts, or utility account numbers found in the text as an array of strings.
 
 Return ONLY valid JSON, no markdown fencing:
 {
   "billingPeriod": "YYYY-MM-DD",
+  "accountNumbers": ["123456789"],
   "services": [
     {
       "serviceName": "Electricity Metered",
@@ -180,6 +182,7 @@ ${parsedText}
 
           let geminiExtraction: {
             billingPeriod?: string;
+            accountNumbers?: string[];
             services: {
               serviceName: string;
               utilityType: string;
@@ -205,12 +208,41 @@ ${parsedText}
           const billingPeriod =
             geminiExtraction.billingPeriod ||
             new Date().toISOString().split("T")[0];
+          
+          const extractedAccounts = geminiExtraction.accountNumbers || [];
 
           // Fetch existing utility accounts for this building
           let accounts = await db
             .select()
             .from(utilityAccounts)
             .where(eq(utilityAccounts.buildingId, buildingId));
+
+          // ── Validation: Check if uploaded invoice belongs to this building ──
+          const registeredAccountNumbers = accounts
+            .map((a) => a.accountNumber)
+            .filter((acc) => acc && acc !== "AUTO-GENERATED");
+
+          if (registeredAccountNumbers.length > 0 && extractedAccounts.length > 0) {
+            // The building has at least one real account number registered.
+            // Check if ANY of the extracted account numbers match ANY of the registered ones.
+            const hasMatch = extractedAccounts.some((extracted) =>
+              registeredAccountNumbers.some(
+                (registered) =>
+                  extracted.replace(/[^0-9a-zA-Z]/g, "") ===
+                  registered.replace(/[^0-9a-zA-Z]/g, ""),
+              ),
+            );
+
+            if (!hasMatch) {
+              console.log(
+                `Ingest Action - Validation Failed. Extracted: ${extractedAccounts.join(", ")}, Registered: ${registeredAccountNumbers.join(", ")}`,
+              );
+              return {
+                success: false,
+                error: `Validation Failed: The account number on this invoice does not match the registered accounts for this building.`,
+              };
+            }
+          }
 
           const insertedRecords = [];
 

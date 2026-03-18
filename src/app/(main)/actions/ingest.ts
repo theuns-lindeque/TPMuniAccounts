@@ -101,10 +101,14 @@ export async function ingestAction(formData: FormData) {
 
           const extractionPrompt = `
 You are a South African commercial property recovery report parser. Extract EVERY tenant recovery line from the text.
+
 IMPORTANT RULES:
 - Use the Billed Amount / Total column (excluding VAT if possible).
 - Extract tenantName, amountBilled, basicCharge, usageCharge, demandCharge, solarProduced.
-- Try to extract the billing period from the report header as YYYY-MM-DD (e.g., if it says 2025/10/01 to 2025/11/01, use "2025-10-01" or the representative month).
+- Try to extract the billing period from the report header as YYYY-MM-DD.
+- CRITICAL DATE RULE: Look for the service period (e.g., "Dec 2025" or "2025/11/01 to 2025/12/01"). Use the START date of the service period.
+- DO NOT use the statement date, invoice date, or due date if they are later than the service period.
+- If the report mentions a month like "December 2025", use "2025-12-01".
 
 Return ONLY valid JSON, no markdown fencing:
 {

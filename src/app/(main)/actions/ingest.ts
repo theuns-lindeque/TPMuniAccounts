@@ -236,6 +236,7 @@ IMPORTANT RULES:
   - If the service contains "Metered", "Usage", or "Consumption" → usageCharge
   - If the service contains "Demand" or "kVa" → demandCharge
   - Otherwise → usageCharge (default)
+- For "Metered", "Usage", or "Consumption" charges, extract the exact quantity (kWh or kL) consumed and set it as "usage" (number). If not found, use null.
 - Try to extract the billing period / statement date as YYYY-MM-DD.
 - Extract any municipal account numbers, contract accounts, or utility account numbers found in the text as an array of strings.
 
@@ -250,7 +251,8 @@ Return ONLY valid JSON, no markdown fencing:
       "billedAmount": 18300.98,
       "basicCharge": null,
       "usageCharge": 18300.98,
-      "demandCharge": null
+      "demandCharge": null,
+      "usage": 5600
     },
     {
       "serviceName": "Refuse Charge",
@@ -258,7 +260,8 @@ Return ONLY valid JSON, no markdown fencing:
       "billedAmount": 213.30,
       "basicCharge": null,
       "usageCharge": 213.30,
-      "demandCharge": null
+      "demandCharge": null,
+      "usage": null
     }
   ]
 }
@@ -277,6 +280,7 @@ ${parsedText}
               basicCharge: number | null;
               usageCharge: number | null;
               demandCharge: number | null;
+              usage: number | null;
             }[];
           };
 
@@ -384,13 +388,15 @@ ${parsedText}
               // Aggregate charges for this utility type
               let totalAmount = 0;
               let totalBasic = 0;
-              let totalUsage = 0;
+              let totalUsageCharge = 0;
               let totalDemand = 0;
+              let totalUsageQty = 0;
               for (const svc of services) {
                 totalAmount += svc.billedAmount || 0;
                 totalBasic += svc.basicCharge || 0;
-                totalUsage += svc.usageCharge || 0;
+                totalUsageCharge += svc.usageCharge || 0;
                 totalDemand += svc.demandCharge || 0;
+                totalUsageQty += svc.usage || 0;
               }
 
               // ── Upsert Logic ──────────────────────────────────────────────
@@ -408,8 +414,10 @@ ${parsedText}
                   .set({
                     amount: totalAmount.toFixed(2),
                     basicCharge: totalBasic.toFixed(2),
-                    usageCharge: totalUsage.toFixed(2),
+                    usageCharge: totalUsageCharge.toFixed(2),
                     demandCharge: totalDemand.toFixed(2),
+                    usage: totalUsageQty.toFixed(2),
+                    pdfUrl: publicUrl,
                     updatedAt: new Date(),
                   })
                   .where(eq(invoices.id, existingInvoice.id));
@@ -426,9 +434,9 @@ ${parsedText}
                   billingPeriod,
                   amount: totalAmount.toFixed(2),
                   basicCharge: totalBasic.toFixed(2),
-                  usageCharge: totalUsage.toFixed(2),
+                  usageCharge: totalUsageCharge.toFixed(2),
                   demandCharge: totalDemand.toFixed(2),
-                  usage: "0",
+                  usage: totalUsageQty.toFixed(2),
                   pdfUrl: publicUrl,
                 };
                 await db.insert(invoices).values(record);

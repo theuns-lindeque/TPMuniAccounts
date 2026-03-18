@@ -209,6 +209,22 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
   );
   const deficit = totalExpenses - totalRecoveries;
 
+  // Solar calculations
+  const totalElecUsageCharge = invoiceData
+    .filter((inv) => inv.utilityType === "Electricity")
+    .reduce((acc, inv) => acc + parseFloat(inv.usageCharge || "0"), 0);
+  const totalElecUsageQty = invoiceData
+    .filter((inv) => inv.utilityType === "Electricity")
+    .reduce((acc, inv) => acc + parseFloat(inv.usage || "0"), 0);
+  const municipalRate =
+    totalElecUsageQty > 0 ? totalElecUsageCharge / totalElecUsageQty : 0;
+
+  const totalSolarProducedKwh = recoveryData.reduce(
+    (acc, rec) => acc + parseFloat(rec.solarProduced || "0"),
+    0,
+  );
+  const solarRecoveryZAR = totalSolarProducedKwh * municipalRate;
+
   // Group invoices by utility type for the breakdown
   const invoicesByType: Record<string, Invoice[]> = {};
   for (const inv of invoiceData) {
@@ -441,6 +457,46 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
               />
             </div>
           </section>
+
+          {/* ── Summary Group: Solar Energy Tracking ────────────── */}
+          {totalSolarProducedKwh > 0 && (
+            <section className="space-y-6">
+              <div className="flex items-center gap-2 px-1 text-slate-500">
+                <Sun size={16} className="text-yellow-500" />
+                <h3 className="text-xs font-bold uppercase tracking-widest">
+                  Solar Energy Tracking
+                </h3>
+                <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800 ml-2" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <KPICard
+                  label="Solar Produced (kWh)"
+                  value={`${totalSolarProducedKwh.toLocaleString("en-US", { maximumFractionDigits: 1 })} kWh`}
+                  icon={<Zap />}
+                  accent="text-yellow-600 dark:text-yellow-400"
+                  bg="bg-yellow-500/10"
+                  border="border-yellow-500/20"
+                />
+                <KPICard
+                  label="Municipal Rate (Est. Avg)"
+                  value={`R ${municipalRate.toFixed(2)} / kWh`}
+                  icon={<TrendingUp />}
+                  accent="text-slate-600 dark:text-slate-400"
+                  bg="bg-slate-500/10"
+                  border="border-slate-500/20"
+                />
+                <KPICard
+                  label="Solar Recovery Value"
+                  value={currency(solarRecoveryZAR.toString())}
+                  icon={<CircleDollarSign />}
+                  accent="text-amber-600 dark:text-amber-400"
+                  bg="bg-amber-500/10"
+                  border="border-amber-500/20"
+                />
+              </div>
+            </section>
+          )}
       </header>
 
       {/* ── KPI Cards ────────────────────────────────────────────────── */}

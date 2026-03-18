@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 import { eq, and, gte, lte, desc } from "drizzle-orm";
 import { getMe } from "./users";
+import { getSignedUrl } from "@/lib/gcs";
 
 export async function getPropertyDetail(
   buildingId: string,
@@ -172,6 +173,28 @@ export async function getPropertyDetail(
       }
     }
 
+    // ── Sign all URLs in parallel ───────────────────────────────────────
+    const [signedInvoices, signedRecoveries, signedDocuments] = await Promise.all([
+      Promise.all(
+        buildingInvoices.map(async (inv) => ({
+          ...inv,
+          pdfUrl: await getSignedUrl(inv.pdfUrl),
+        })),
+      ),
+      Promise.all(
+        buildingRecoveries.map(async (rec) => ({
+          ...rec,
+          pdfUrl: await getSignedUrl(rec.pdfUrl),
+        })),
+      ),
+      Promise.all(
+        allDocuments.map(async (doc) => ({
+          ...doc,
+          url: (await getSignedUrl(doc.url)) || doc.url,
+        })),
+      ),
+    ]);
+
     // Serialize
     return {
       success: true as const,
@@ -187,8 +210,8 @@ export async function getPropertyDetail(
           type: a.type,
         })),
       },
-      invoices: buildingInvoices,
-      recoveries: buildingRecoveries.map((r) => ({
+      invoices: signedInvoices,
+      recoveries: signedRecoveries.map((r) => ({
         id: r.id,
         tenantName: r.tenantName,
         amountBilled: r.amountBilled,
@@ -199,7 +222,7 @@ export async function getPropertyDetail(
         period: r.period,
         pdfUrl: r.pdfUrl,
       })),
-      documents: allDocuments,
+      documents: signedDocuments,
       analysisReport: latestReport[0]
         ? {
             id: latestReport[0].id,

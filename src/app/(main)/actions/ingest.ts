@@ -6,6 +6,7 @@ import { LlamaParse } from "llama-parse";
 import { parse } from "csv-parse/sync";
 import { inngest } from "@/inngest/client";
 import { getMe } from "./users";
+import { getSignedUrl } from "@/lib/gcs";
 
 interface CSVRecord {
   Tenant?: string;
@@ -93,10 +94,11 @@ export async function ingestAction(formData: FormData) {
             pdfUrl: publicUrl,
           };
           await db.insert(recoveries).values(record);
+          const signedUrl = await getSignedUrl(publicUrl);
           extractedData.push({
             fileName: file.name,
             type: "recovery-pdf",
-            data: record,
+            data: { ...record, pdfUrl: signedUrl },
           });
         } else {
           // Process Municipal Bill with LlamaParse
@@ -353,7 +355,7 @@ ${parsedText}
             type: "bill-pdf",
             llamaResult: parsedText.substring(0, 500),
             geminiExtraction,
-            records: insertedRecords,
+            records: await Promise.all(insertedRecords.map(async r => ({ ...r, pdfUrl: await getSignedUrl(r.pdfUrl) }))),
           });
           console.log(
             `Ingest Action - ${insertedRecords.length} invoice(s) inserted for PDF.`,

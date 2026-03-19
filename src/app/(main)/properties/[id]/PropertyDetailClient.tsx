@@ -20,7 +20,9 @@ import {
   FolderOpen,
   ExternalLink,
   File,
+  ChevronDown,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { getPropertyDetail } from "@/app/(main)/actions/property-detail";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -143,6 +145,27 @@ export default function PropertyDetailClient({
   const [invoiceData, setInvoiceData] = useState(initialInvoices);
   const [recoveryData, setRecoveryData] = useState(initialRecoveries);
   const [selectedPeriod, setSelectedPeriod] = useState(12);
+  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
+
+  // Initialize expandedTypes with the first utility type if available
+  useMemo(() => {
+    if (invoiceData.length > 0 && expandedTypes.size === 0) {
+      const types = Array.from(new Set(invoiceData.map((inv) => inv.utilityType)));
+      if (types.length > 0) {
+        setExpandedTypes(new Set([types[0]]));
+      }
+    }
+  }, [invoiceData]);
+
+  const toggleType = (type: string) => {
+    const next = new Set(expandedTypes);
+    if (next.has(type)) {
+      next.delete(type);
+    } else {
+      next.add(type);
+    }
+    setExpandedTypes(next);
+  };
 const { consumptionInvoices, fixedInvoices } = useMemo(() => {
     return {
       consumptionInvoices: invoiceData.filter((inv) =>
@@ -352,19 +375,22 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
             </div>
           )}
         </div>
-        {/* ── Summary Group: Consumption Utilities ─────────────────── */}
-          <section className="space-y-6">
-            <div className="flex items-center gap-2 px-1">
-              <Zap size={16} className="text-amber-500" />
-              <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
-                Consumption Utilities Analysis
+        {/* ── Financial Health Analysis Grid ─────────────────────────── */}
+        <section className="space-y-4">
+          {/* Consumption Utilities Group */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Zap size={14} className="text-amber-500" />
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">
+                Consumption Analysis
               </h3>
               <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800 ml-2" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
               <KPICard
-                label="Total Consumption Cost"
+                variant="compact"
+                label="Total Cost"
                 value={currency(
                   consumptionInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0).toString()
                 )}
@@ -374,7 +400,8 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
                 border="border-blue-500/20"
               />
               <KPICard
-                label="Consumption Recovered"
+                variant="compact"
+                label="Recovered"
                 value={currency(
                   consumptionRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0).toString()
                 )}
@@ -384,6 +411,7 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
                 border="border-emerald-500/20"
               />
               <KPICard
+                variant="compact"
                 label="Net Recovery"
                 value={currency(
                   (
@@ -397,6 +425,7 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
                 border="border-teal-500/20"
               />
               <KPICard
+                variant="compact"
                 label="Recovery %"
                 value={(() => {
                   const cost = consumptionInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0);
@@ -409,94 +438,104 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
                 border="border-indigo-500/20"
               />
             </div>
-          </section>
+          </div>
 
-          {/* ── Summary Group: Fixed Charges (Rates & Levies) ────────── */}
-          <section className="space-y-6">
-            <div className="flex items-center gap-2 px-1 text-slate-500">
-              <Building2 size={16} />
-              <h3 className="text-xs font-bold uppercase tracking-widest">
-                Fixed Property Charges Analysis
-              </h3>
-              <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800 ml-2" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <KPICard
-                label="Total Rates & Levies"
-                value={currency(
-                  fixedInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0).toString()
-                )}
-                icon={<TrendingDown />}
-                accent="text-slate-600 dark:text-slate-400"
-                bg="bg-slate-500/10"
-                border="border-slate-500/20"
-              />
-              <KPICard
-                label="Recovered Share"
-                value={currency(
-                  fixedRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0).toString()
-                )}
-                icon={<CircleDollarSign />}
-                accent="text-slate-600 dark:text-slate-400"
-                bg="bg-slate-500/10"
-                border="border-slate-500/20"
-              />
-              <KPICard
-                label="Net Operational Cost"
-                value={currency(
-                  (
-                    fixedInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0) -
-                    fixedRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0)
-                  ).toString()
-                )}
-                icon={<CircleDollarSign />}
-                accent="text-rose-600 dark:text-rose-400"
-                bg="bg-rose-500/10"
-                border="border-rose-500/20"
-              />
-            </div>
-          </section>
-
-          {/* ── Summary Group: Solar Energy Tracking ────────────── */}
-          {totalSolarProducedKwh > 0 && (
-            <section className="space-y-6">
-              <div className="flex items-center gap-2 px-1 text-slate-500">
-                <Sun size={16} className="text-yellow-500" />
-                <h3 className="text-xs font-bold uppercase tracking-widest">
-                  Solar Energy Tracking
+          {/* Fixed Charges and Solar Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Fixed Group */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Building2 size={14} className="text-slate-400" />
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">
+                  Fixed Property Charges
                 </h3>
                 <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800 ml-2" />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <KPICard
-                  label="Solar Produced (kWh)"
-                  value={`${totalSolarProducedKwh.toLocaleString("en-US", { maximumFractionDigits: 1 })} kWh`}
-                  icon={<Zap />}
-                  accent="text-yellow-600 dark:text-yellow-400"
-                  bg="bg-yellow-500/10"
-                  border="border-yellow-500/20"
-                />
-                <KPICard
-                  label="Municipal Rate (Est. Avg)"
-                  value={`R ${municipalRate.toFixed(2)} / kWh`}
-                  icon={<TrendingUp />}
+                  variant="compact"
+                  label="Rates & Levies"
+                  value={currency(
+                    fixedInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0).toString()
+                  )}
+                  icon={<TrendingDown />}
                   accent="text-slate-600 dark:text-slate-400"
                   bg="bg-slate-500/10"
                   border="border-slate-500/20"
                 />
                 <KPICard
-                  label="Solar Recovery Value"
-                  value={currency(solarRecoveryZAR.toString())}
+                  variant="compact"
+                  label="Recovered Share"
+                  value={currency(
+                    fixedRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0).toString()
+                  )}
                   icon={<CircleDollarSign />}
-                  accent="text-amber-600 dark:text-amber-400"
-                  bg="bg-amber-500/10"
-                  border="border-amber-500/20"
+                  accent="text-slate-600 dark:text-slate-400"
+                  bg="bg-slate-500/10"
+                  border="border-slate-500/20"
+                />
+                <KPICard
+                  variant="compact"
+                  label="Net Operational"
+                  value={currency(
+                    (
+                      fixedInvoices.reduce((acc, inv) => acc + parseFloat(inv.amount), 0) -
+                      fixedRecoveries.reduce((acc, r: Recovery) => acc + parseFloat(r.amountBilled), 0)
+                    ).toString()
+                  )}
+                  icon={<CircleDollarSign />}
+                  accent="text-rose-600 dark:text-rose-400"
+                  bg="bg-rose-500/10"
+                  border="border-rose-500/20"
                 />
               </div>
-            </section>
-          )}
+            </div>
+
+            {/* Solar Group (if active) */}
+            {totalSolarProducedKwh > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sun size={14} className="text-yellow-500" />
+                  <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">
+                    Solar Energy Tracking
+                  </h3>
+                  <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800 ml-2" />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <KPICard
+                    variant="compact"
+                    label="Solar Produced"
+                    value={`${totalSolarProducedKwh.toLocaleString("en-US", { maximumFractionDigits: 1 })} kWh`}
+                    icon={<Zap />}
+                    accent="text-yellow-600 dark:text-yellow-400"
+                    bg="bg-yellow-500/10"
+                    border="border-yellow-500/20"
+                  />
+                  <KPICard
+                    variant="compact"
+                    label="Municipal Rate"
+                    value={`R ${municipalRate.toFixed(2)}/kWh`}
+                    icon={<TrendingUp />}
+                    accent="text-slate-600 dark:text-slate-400"
+                    bg="bg-slate-500/10"
+                    border="border-slate-500/20"
+                  />
+                  <KPICard
+                    variant="compact"
+                    label="Solar Recovery"
+                    value={currency(solarRecoveryZAR.toString())}
+                    icon={<CircleDollarSign />}
+                    accent="text-amber-600 dark:text-amber-400"
+                    bg="bg-amber-500/10"
+                    border="border-amber-500/20"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
       </header>
 
       {/* ── KPI Cards ────────────────────────────────────────────────── */}
@@ -564,121 +603,149 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
 
             {Object.keys(invoicesByType).length > 0 ? (
               <div className="space-y-4">
-                {Object.entries(invoicesByType).map(([type, invs]) => (
-                  <div
-                    key={type}
-                    className="border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950/50 shadow-sm overflow-hidden"
-                  >
-                    <div className="flex items-center gap-2 px-5 py-3 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
-                      {utilityTypeIcons[type] || (
-                        <Zap size={14} className="text-slate-400" />
-                      )}
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        {type}
-                      </span>
-                      <span className="ml-auto text-[9px] font-mono text-slate-400">
-                        {invs.length} invoice{invs.length !== 1 && "s"}
-                      </span>
+                {Object.entries(invoicesByType).map(([type, invs]) => {
+                  const isExpanded = expandedTypes.has(type);
+                  return (
+                    <div
+                      key={type}
+                      className="border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950/50 shadow-sm overflow-hidden"
+                    >
+                      <button
+                        onClick={() => toggleType(type)}
+                        className="w-full flex items-center gap-2 px-5 py-3 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors"
+                      >
+                        {utilityTypeIcons[type] || (
+                          <Zap size={14} className="text-slate-400" />
+                        )}
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                          {type}
+                        </span>
+                        <span className="ml-auto text-[9px] font-mono text-slate-400">
+                          {invs.length} invoice{invs.length !== 1 && "s"}
+                        </span>
+                        <ChevronDown
+                          size={14}
+                          className={cn(
+                            "text-slate-400 transition-transform duration-200",
+                            isExpanded ? "rotate-180" : "",
+                          )}
+                        />
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                            className="overflow-hidden"
+                          >
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm text-left border-collapse">
+                                <thead>
+                                  <tr className="border-b border-slate-100 dark:border-slate-800/50">
+                                    <th className="px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                      Period
+                                    </th>
+                                    <th className="px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
+                                      Basic
+                                    </th>
+                                    <th className="px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
+                                      Usage
+                                    </th>
+                                    <th className="px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
+                                      kVa Demand
+                                    </th>
+                                    <th className="px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
+                                      Total
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/30">
+                                  {invs.map((inv) => (
+                                    <tr
+                                      key={inv.id}
+                                      className="hover:bg-slate-50/30 dark:hover:bg-slate-800/10 transition-colors"
+                                    >
+                                      <td className="px-5 py-3 text-xs font-mono text-slate-600 dark:text-slate-400">
+                                        {inv.billingPeriod}
+                                      </td>
+                                      <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
+                                        {currency(inv.basicCharge)}
+                                      </td>
+                                      <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
+                                        {currency(inv.usageCharge)}
+                                      </td>
+                                      <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
+                                        {currency(inv.demandCharge)}
+                                      </td>
+                                      <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-900 dark:text-slate-100">
+                                        {currency(inv.amount)}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                  {/* Subtotal row */}
+                                  <tr className="bg-slate-50/50 dark:bg-slate-900/30 border-t border-slate-200 dark:border-slate-800">
+                                    <td className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                                      Subtotal
+                                    </td>
+                                    <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
+                                      {currency(
+                                        invs
+                                          .reduce(
+                                            (s, i) =>
+                                              s +
+                                              parseFloat(i.basicCharge || "0"),
+                                            0,
+                                          )
+                                          .toString(),
+                                      )}
+                                    </td>
+                                    <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
+                                      {currency(
+                                        invs
+                                          .reduce(
+                                            (s, i) =>
+                                              s +
+                                              parseFloat(i.usageCharge || "0"),
+                                            0,
+                                          )
+                                          .toString(),
+                                      )}
+                                    </td>
+                                    <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
+                                      {currency(
+                                        invs
+                                          .reduce(
+                                            (s, i) =>
+                                              s +
+                                              parseFloat(i.demandCharge || "0"),
+                                            0,
+                                          )
+                                          .toString(),
+                                      )}
+                                    </td>
+                                    <td className="px-5 py-3 text-xs font-mono text-right font-bold text-teal-600 dark:text-teal-400">
+                                      {currency(
+                                        invs
+                                          .reduce(
+                                            (s, i) =>
+                                              s + parseFloat(i.amount || "0"),
+                                            0,
+                                          )
+                                          .toString(),
+                                      )}
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm text-left border-collapse">
-                        <thead>
-                          <tr className="border-b border-slate-100 dark:border-slate-800/50">
-                            <th className="px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                              Period
-                            </th>
-                            <th className="px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
-                              Basic
-                            </th>
-                            <th className="px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
-                              Usage
-                            </th>
-                            <th className="px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
-                              kVa Demand
-                            </th>
-                            <th className="px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
-                              Total
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50 dark:divide-slate-800/30">
-                          {invs.map((inv) => (
-                            <tr
-                              key={inv.id}
-                              className="hover:bg-slate-50/30 dark:hover:bg-slate-800/10 transition-colors"
-                            >
-                              <td className="px-5 py-3 text-xs font-mono text-slate-600 dark:text-slate-400">
-                                {inv.billingPeriod}
-                              </td>
-                              <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
-                                {currency(inv.basicCharge)}
-                              </td>
-                              <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
-                                {currency(inv.usageCharge)}
-                              </td>
-                              <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
-                                {currency(inv.demandCharge)}
-                              </td>
-                              <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-900 dark:text-slate-100">
-                                {currency(inv.amount)}
-                              </td>
-                            </tr>
-                          ))}
-                          {/* Subtotal row */}
-                          <tr className="bg-slate-50/50 dark:bg-slate-900/30 border-t border-slate-200 dark:border-slate-800">
-                            <td className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                              Subtotal
-                            </td>
-                            <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
-                              {currency(
-                                invs
-                                  .reduce(
-                                    (s, i) =>
-                                      s + parseFloat(i.basicCharge || "0"),
-                                    0,
-                                  )
-                                  .toString(),
-                              )}
-                            </td>
-                            <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
-                              {currency(
-                                invs
-                                  .reduce(
-                                    (s, i) =>
-                                      s + parseFloat(i.usageCharge || "0"),
-                                    0,
-                                  )
-                                  .toString(),
-                              )}
-                            </td>
-                            <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
-                              {currency(
-                                invs
-                                  .reduce(
-                                    (s, i) =>
-                                      s + parseFloat(i.demandCharge || "0"),
-                                    0,
-                                  )
-                                  .toString(),
-                              )}
-                            </td>
-                            <td className="px-5 py-3 text-xs font-mono text-right font-bold text-teal-600 dark:text-teal-400">
-                              {currency(
-                                invs
-                                  .reduce(
-                                    (s, i) =>
-                                      s + parseFloat(i.amount || "0"),
-                                    0,
-                                  )
-                                  .toString(),
-                              )}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <EmptyState
@@ -702,121 +769,158 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
 
             {recoveryData.length > 0 ? (
               <div className="border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950/50 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left border-collapse">
-                    <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
-                      <tr>
-                        <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                          Tenant
-                        </th>
-                        <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                          Period
-                        </th>
-                        <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
-                          Basic
-                        </th>
-                        <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
-                          Usage
-                        </th>
-                        <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
-                          kVa Demand
-                        </th>
-                        <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
-                          Solar
-                        </th>
-                        <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
-                          Billed
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50 dark:divide-slate-800/30">
-                      {recoveryData.map((rec) => (
-                        <tr
-                          key={rec.id}
-                          className="hover:bg-slate-50/30 dark:hover:bg-slate-800/10 transition-colors"
-                        >
-                          <td className="px-5 py-3 text-xs font-medium text-slate-900 dark:text-slate-100">
-                            {rec.tenantName}
-                          </td>
-                          <td className="px-5 py-3 text-xs font-mono text-slate-500">
-                            {rec.period}
-                          </td>
-                          <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
-                            {currency(rec.basicCharge)}
-                          </td>
-                          <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
-                            {currency(rec.usageCharge)}
-                          </td>
-                          <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
-                            {currency(rec.demandCharge)}
-                          </td>
-                          <td className="px-5 py-3 text-xs font-mono text-right text-yellow-600 dark:text-yellow-400">
-                            {currency(rec.solarProduced)}
-                          </td>
-                          <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-900 dark:text-slate-100">
-                            {currency(rec.amountBilled)}
-                          </td>
-                        </tr>
-                      ))}
-                      {/* Grand total */}
-                      <tr className="bg-slate-50/50 dark:bg-slate-900/30 border-t border-slate-200 dark:border-slate-800">
-                        <td
-                          colSpan={2}
-                          className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-500"
-                        >
-                          Grand Total
-                        </td>
-                        <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
-                          {currency(
-                            recoveryData
-                              .reduce(
-                                (s, r) =>
-                                  s + parseFloat(r.basicCharge || "0"),
-                                0,
-                              )
-                              .toString(),
-                          )}
-                        </td>
-                        <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
-                          {currency(
-                            recoveryData
-                              .reduce(
-                                (s, r) =>
-                                  s + parseFloat(r.usageCharge || "0"),
-                                0,
-                              )
-                              .toString(),
-                          )}
-                        </td>
-                        <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
-                          {currency(
-                            recoveryData
-                              .reduce(
-                                (s, r) =>
-                                  s + parseFloat(r.demandCharge || "0"),
-                                0,
-                              )
-                              .toString(),
-                          )}
-                        </td>
-                        <td className="px-5 py-3 text-xs font-mono text-right font-bold text-yellow-600 dark:text-yellow-400">
-                          {currency(
-                            recoveryData
-                              .reduce(
-                                (s, r) =>
-                                  s + parseFloat(r.solarProduced || "0"),
-                                0,
-                              )
-                              .toString(),
-                          )}
-                        </td>
-                        <td className="px-5 py-3 text-xs font-mono text-right font-bold text-teal-600 dark:text-teal-400">
-                          {currency(totalRecoveries.toString())}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                <button
+                  onClick={() => toggleType("RecoveryBreakdown")}
+                  className="w-full flex items-center gap-2 px-5 py-3 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors"
+                >
+                  <Users size={14} className="text-teal-500" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    Recovery Breakdown
+                  </span>
+                  <span className="ml-auto text-[9px] font-mono text-slate-400 uppercase tracking-widest">
+                    {recoveryData.length} records
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={cn(
+                      "text-slate-400 transition-transform duration-200",
+                      expandedTypes.has("RecoveryBreakdown")
+                        ? "rotate-180"
+                        : "",
+                    )}
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {expandedTypes.has("RecoveryBreakdown") && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left border-collapse">
+                          <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+                            <tr>
+                              <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                Tenant
+                              </th>
+                              <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                Period
+                              </th>
+                              <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
+                                Basic
+                              </th>
+                              <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
+                                Usage
+                              </th>
+                              <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
+                                kVa Demand
+                              </th>
+                              <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
+                                Solar
+                              </th>
+                              <th className="px-5 py-3 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">
+                                Billed
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50 dark:divide-slate-800/30">
+                            {recoveryData.map((rec) => (
+                              <tr
+                                key={rec.id}
+                                className="hover:bg-slate-50/30 dark:hover:bg-slate-800/10 transition-colors"
+                              >
+                                <td className="px-5 py-3 text-xs font-medium text-slate-900 dark:text-slate-100">
+                                  {rec.tenantName}
+                                </td>
+                                <td className="px-5 py-3 text-xs font-mono text-slate-500">
+                                  {rec.period}
+                                </td>
+                                <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
+                                  {currency(rec.basicCharge)}
+                                </td>
+                                <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
+                                  {currency(rec.usageCharge)}
+                                </td>
+                                <td className="px-5 py-3 text-xs font-mono text-right text-slate-600 dark:text-slate-400">
+                                  {currency(rec.demandCharge)}
+                                </td>
+                                <td className="px-5 py-3 text-xs font-mono text-right text-yellow-600 dark:text-yellow-400">
+                                  {currency(rec.solarProduced)}
+                                </td>
+                                <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-900 dark:text-slate-100">
+                                  {currency(rec.amountBilled)}
+                                </td>
+                              </tr>
+                            ))}
+                            {/* Grand total */}
+                            <tr className="bg-slate-50/50 dark:bg-slate-900/30 border-t border-slate-200 dark:border-slate-800">
+                              <td
+                                colSpan={2}
+                                className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-500"
+                              >
+                                Grand Total
+                              </td>
+                              <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
+                                {currency(
+                                  recoveryData
+                                    .reduce(
+                                      (s, r) =>
+                                        s +
+                                        parseFloat(r.basicCharge || "0"),
+                                      0,
+                                    )
+                                    .toString(),
+                                )}
+                              </td>
+                              <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
+                                {currency(
+                                  recoveryData
+                                    .reduce(
+                                      (s, r) =>
+                                        s +
+                                        parseFloat(r.usageCharge || "0"),
+                                      0,
+                                    )
+                                    .toString(),
+                                )}
+                              </td>
+                              <td className="px-5 py-3 text-xs font-mono text-right font-bold text-slate-700 dark:text-slate-300">
+                                {currency(
+                                  recoveryData
+                                    .reduce(
+                                      (s, r) =>
+                                        s +
+                                        parseFloat(r.demandCharge || "0"),
+                                      0,
+                                    )
+                                    .toString(),
+                                )}
+                              </td>
+                              <td className="px-5 py-3 text-xs font-mono text-right font-bold text-yellow-600 dark:text-yellow-400">
+                                {currency(
+                                  recoveryData
+                                    .reduce(
+                                      (s, r) =>
+                                        s +
+                                        parseFloat(r.solarProduced || "0"),
+                                      0,
+                                    )
+                                    .toString(),
+                                )}
+                              </td>
+                              <td className="px-5 py-3 text-xs font-mono text-right font-bold text-teal-600 dark:text-teal-400">
+                                {currency(totalRecoveries.toString())}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <EmptyState
@@ -1035,8 +1139,6 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
   );
 }
 
-// ── Sub-components ──────────────────────────────────────────────────────────────
-
 function KPICard({
   label,
   value,
@@ -1044,6 +1146,7 @@ function KPICard({
   accent,
   bg,
   border,
+  variant = "default",
 }: {
   label: string;
   value: string;
@@ -1051,7 +1154,39 @@ function KPICard({
   accent: string;
   bg: string;
   border: string;
+  variant?: "default" | "compact";
 }) {
+  const isCompact = variant === "compact";
+
+  if (isCompact) {
+    return (
+      <div
+        className={cn(
+          "rounded-xl border px-4 py-3 transition-all relative overflow-hidden group flex items-center justify-between",
+          "bg-white dark:bg-slate-900 shadow-sm hover:shadow-md",
+          border,
+        )}
+      >
+        <div className="min-w-0">
+          <div className="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-0.5 truncate">
+            {label}
+          </div>
+          <div
+            className={cn(
+              "text-base sm:text-lg font-mono font-bold tracking-tight",
+              accent,
+            )}
+          >
+            {value}
+          </div>
+        </div>
+        <div className={cn("p-2 rounded-lg ml-3 opacity-70", bg, accent)}>
+          {React.cloneElement(icon as React.ReactElement<any>, { size: 14 })}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -1060,11 +1195,13 @@ function KPICard({
         border,
       )}
     >
-      <div className={cn(
-        "absolute -top-2 -right-2 w-16 h-16 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity rounded-full",
-        bg
-      )} />
-      
+      <div
+        className={cn(
+          "absolute -top-2 -right-2 w-16 h-16 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity rounded-full",
+          bg,
+        )}
+      />
+
       <div className="flex items-center justify-between mb-3">
         <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
           {label}

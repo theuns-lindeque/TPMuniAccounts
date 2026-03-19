@@ -19,10 +19,16 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const MODELS = [
   {
-    id: "gemini-3-flash-preview",
-    name: "Gemini 3 Flash Preview",
-    description: "Latest generation, fast and capable for all tasks.",
-    badge: "Latest",
+    id: "gemini-1.5-flash",
+    name: "Gemini 1.5 Flash",
+    description: "High-speed processing, ideal for quick interactive chats.",
+    badge: "Fastest",
+  },
+  {
+    id: "gemini-1.5-pro",
+    name: "Gemini 1.5 Pro",
+    description: "Superior reasoning and deep analysis for complex audits.",
+    badge: "Advanced",
   },
 ];
 
@@ -45,8 +51,8 @@ export default function SettingsPage() {
     setIsSaving(true);
     setStatus(null);
     const result = await updateAppSettings({
-      chatModel: settings?.chatModel || "gemini-3-flash-preview",
-      analysisModel: settings?.analysisModel || "gemini-3-flash-preview",
+      chatModel: settings?.chatModel || "gemini-1.5-flash",
+      analysisModel: settings?.analysisModel || "gemini-1.5-flash",
     });
 
     if (result.success) {

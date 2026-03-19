@@ -541,33 +541,37 @@ const { consumptionInvoices, fixedInvoices } = useMemo(() => {
       {/* ── KPI Cards ────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <KPICard
+          variant="compact"
           label="Total Expenses"
           value={currency(totalExpenses.toString())}
-          icon={<TrendingDown size={18} />}
+          icon={<TrendingDown />}
           accent="text-rose-500"
           bg="bg-rose-500/5"
           border="border-rose-500/10"
         />
         <KPICard
+          variant="compact"
           label="Total Recoveries"
           value={currency(totalRecoveries.toString())}
-          icon={<TrendingUp size={18} />}
+          icon={<TrendingUp />}
           accent="text-emerald-500"
           bg="bg-emerald-500/5"
           border="border-emerald-500/10"
         />
         <KPICard
+          variant="compact"
           label={deficit >= 0 ? "Net Deficit" : "Net Surplus"}
           value={currency(Math.abs(deficit).toString())}
-          icon={deficit >= 0 ? <AlertTriangle size={18} /> : <ShieldCheck size={18} />}
+          icon={deficit >= 0 ? <AlertTriangle /> : <ShieldCheck />}
           accent={deficit >= 0 ? "text-amber-500" : "text-emerald-500"}
           bg={deficit >= 0 ? "bg-amber-500/5" : "bg-emerald-500/5"}
           border={deficit >= 0 ? "border-amber-500/10" : "border-emerald-500/10"}
         />
         <KPICard
+          variant="compact"
           label="Risk Level"
           value={analysisReport?.riskLevel || "N/A"}
-          icon={<ShieldCheck size={18} />}
+          icon={<ShieldCheck />}
           accent={
             analysisReport
               ? riskColor(analysisReport.riskLevel).split(" ")[0]

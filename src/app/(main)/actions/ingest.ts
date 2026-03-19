@@ -355,6 +355,8 @@ ${parsedText}
             for (const [utilityType, services] of Object.entries(byType)) {
               // Find or create utility account for this type
               let account = accounts.find((a) => a.type === utilityType);
+              const extractedAccountNumber = extractedAccounts[0] || "AUTO-GENERATED";
+
               if (!account) {
                 const newId = crypto.randomUUID();
                 const validTypes = [
@@ -376,17 +378,30 @@ ${parsedText}
                   id: newId,
                   buildingId: buildingId,
                   type: safeType,
-                  accountNumber: "AUTO-GENERATED",
+                  accountNumber: extractedAccountNumber,
                 });
                 account = {
                   id: newId,
                   buildingId,
                   type: safeType,
-                  accountNumber: "AUTO-GENERATED",
+                  accountNumber: extractedAccountNumber,
                   createdAt: new Date(),
                   updatedAt: new Date(),
                 };
                 accounts.push(account);
+              } else if (
+                account.accountNumber === "AUTO-GENERATED" &&
+                extractedAccountNumber !== "AUTO-GENERATED"
+              ) {
+                // Update existing auto-generated account with real number
+                await db
+                  .update(utilityAccounts)
+                  .set({
+                    accountNumber: extractedAccountNumber,
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(utilityAccounts.id, account.id));
+                account.accountNumber = extractedAccountNumber;
               }
 
               // Aggregate charges for this utility type
@@ -455,17 +470,31 @@ ${parsedText}
             console.warn(
               "Ingest Action - Gemini returned no services, inserting fallback.",
             );
+            const extractedAccountNumber = extractedAccounts[0] || "AUTO-GENERATED";
             let fallbackAccountId = accounts[0]?.id;
+
             if (!fallbackAccountId) {
               const newId = crypto.randomUUID();
               await db.insert(utilityAccounts).values({
                 id: newId,
                 buildingId: buildingId,
                 type: "Electricity",
-                accountNumber: "AUTO-GENERATED",
+                accountNumber: extractedAccountNumber,
               });
               fallbackAccountId = newId;
+            } else if (
+              accounts[0].accountNumber === "AUTO-GENERATED" &&
+              extractedAccountNumber !== "AUTO-GENERATED"
+            ) {
+              await db
+                .update(utilityAccounts)
+                .set({
+                  accountNumber: extractedAccountNumber,
+                  updatedAt: new Date(),
+                })
+                .where(eq(utilityAccounts.id, accounts[0].id));
             }
+
             const record = {
               id: crypto.randomUUID(),
               utilityAccountId: fallbackAccountId,

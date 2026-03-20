@@ -95,7 +95,7 @@ export async function ingestAction(formData: FormData) {
           const { eq, and } = await import("drizzle-orm");
 
           const settingsResult = await db.select().from(appSettings).limit(1);
-          const modelName = settingsResult[0]?.analysisModel || "gemini-1.5-flash";
+          const modelName = settingsResult[0]?.analysisModel || "gemini-3-flash-preview";
           const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
           const model = genAI.getGenerativeModel({ model: modelName });
 

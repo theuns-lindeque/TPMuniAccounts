@@ -1,7 +1,3 @@
-import ExcelJS from "exceljs";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-
 export interface ReportData {
   invoices: any[];
   recoveries: any[];
@@ -13,6 +9,9 @@ export interface ReportData {
 }
 
 export async function generateExcelReport(data: ReportData) {
+  // Dynamically import ExcelJS to avoid SSR build issues
+  const ExcelJS = (await import("exceljs")).default;
+  
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "TPMuniAccounts AI Engine";
   workbook.created = new Date();
@@ -78,6 +77,10 @@ export async function generateExcelReport(data: ReportData) {
 }
 
 export async function generatePDFReport(data: ReportData) {
+  // Dynamically import jsPDF and jspdf-autotable to avoid SSR build issues
+  const { jsPDF } = await import("jspdf");
+  const autoTable = (await import("jspdf-autotable")).default;
+
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 

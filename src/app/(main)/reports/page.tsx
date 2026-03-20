@@ -1,5 +1,5 @@
 import { getReportBuildings } from "./actions";
-import ReportsClient from "./ReportsClient";
+import ReportsClientWrapper from "./ReportsClientWrapper";
 import { AlertCircle } from "lucide-react";
 
 export default async function ReportsPage() {
@@ -23,9 +23,10 @@ export default async function ReportsPage() {
     );
   }
 
+  // Use the Client-side wrapper which enforces ssr: false for the report dashboard
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto">
-      <ReportsClient buildings={result.buildings || []} />
+      <ReportsClientWrapper buildings={result.buildings || []} />
     </div>
   );
 }

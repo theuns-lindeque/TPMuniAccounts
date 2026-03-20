@@ -7,18 +7,15 @@ import {
   Calendar, 
   Building2, 
   Search, 
-  ChevronRight,
   CircleDollarSign,
   TrendingDown,
   TrendingUp,
   Loader2,
-  Table as TableIcon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { KPICard } from "@/components/ui/KPICard";
 import { getReportData } from "./actions";
-import { generateExcelReport, generatePDFReport } from "@/lib/export";
 
 interface Building {
   id: string;
@@ -27,6 +24,7 @@ interface Building {
 
 export default function ReportsClient({ buildings }: { buildings: Building[] }) {
   const [isPending, startTransition] = useTransition();
+  const [isExporting, setIsExporting] = useState<"pdf" | "excel" | null>(null);
   const [filters, setFilters] = useState({
     buildingId: "all",
     startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split("T")[0],
@@ -60,21 +58,88 @@ export default function ReportsClient({ buildings }: { buildings: Building[] }) 
   const totalRecoveries = reportData.recoveries.reduce((sum, rec) => sum + parseFloat(rec.amountBilled), 0);
   const netPosition = totalInvoices - totalRecoveries;
 
-  const handleExport = (type: "pdf" | "excel") => {
-    const buildingName = filters.buildingId === "all" 
-      ? "All Properties" 
-      : buildings.find(b => b.id === filters.buildingId)?.name || "Property";
+  const handleExport = async (type: "pdf" | "excel") => {
+    setIsExporting(type);
+    try {
+      const buildingName = filters.buildingId === "all" 
+        ? "All Properties" 
+        : buildings.find(b => b.id === filters.buildingId)?.name || "Property";
 
-    const data = {
-      ...reportData,
-      filters: {
-        ...filters,
-        buildingName
+      const data = {
+        ...reportData,
+        filters: {
+          ...filters,
+          buildingName
+        }
+      };
+
+      if (type === "excel") {
+        const ExcelJS = (await import("exceljs")).default;
+        const workbook = new ExcelJS.Workbook();
+        const summarySheet = workbook.addWorksheet("Summary");
+        summarySheet.columns = [{ header: "Field", key: "field", width: 25 }, { header: "Value", key: "value", width: 40 }];
+        summarySheet.addRows([
+          { field: "Property", value: data.filters.buildingName },
+          { field: "Period", value: `${data.filters.startDate} to ${data.filters.endDate}` },
+          { field: "Total Municipal Invoices", value: totalInvoices.toFixed(2) },
+          { field: "Total Tenant Recoveries", value: totalRecoveries.toFixed(2) },
+          { field: "Net Deficit/Surplus", value: (totalInvoices - totalRecoveries).toFixed(2) },
+        ]);
+        summarySheet.getRow(1).font = { bold: true };
+        
+        const invSheet = workbook.addWorksheet("Municipal Invoices");
+        invSheet.columns = [
+          { header: "Building", key: "buildingName", width: 25 },
+          { header: "Period", key: "billingPeriod", width: 15 },
+          { header: "Utility Type", key: "type", width: 15 },
+          { header: "Amount", key: "amount", width: 15 },
+        ];
+        invSheet.addRows(data.invoices);
+        invSheet.getRow(1).font = { bold: true };
+
+        const recSheet = workbook.addWorksheet("Tenant Recoveries");
+        recSheet.columns = [
+          { header: "Building", key: "buildingName", width: 25 },
+          { header: "Tenant Name", key: "tenantName", width: 30 },
+          { header: "Amount Billed", key: "amountBilled", width: 15 },
+        ];
+        recSheet.addRows(data.recoveries);
+        recSheet.getRow(1).font = { bold: true };
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `Report_${buildingName.replace(/\s+/g, "_")}.xlsx`;
+        anchor.click();
+      } else {
+        const { jsPDF } = await import("jspdf");
+        const autoTable = (await import("jspdf-autotable")).default;
+        const doc = new jsPDF();
+        doc.setFontSize(20);
+        doc.setTextColor(20, 184, 166);
+        doc.text("TPMuniAccounts Audit Report", 14, 22);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
+        doc.text(`Property: ${buildingName}`, 14, 38);
+        
+        autoTable(doc, {
+          startY: 45,
+          head: [["Building", "Period", "Type", "Amount"]],
+          body: data.invoices.map(inv => [inv.buildingName, inv.billingPeriod, inv.type, `R ${parseFloat(inv.amount).toLocaleString()}`]),
+          theme: "striped",
+          headStyles: { fillColor: [20, 184, 166] },
+        });
+
+        doc.save(`Report_${buildingName.replace(/\s+/g, "_")}.pdf`);
       }
-    };
-
-    if (type === "pdf") generatePDFReport(data);
-    else generateExcelReport(data);
+    } catch (err) {
+      console.error("Export failed:", err);
+    } finally {
+      setIsExporting(null);
+    }
   };
 
   return (
@@ -95,16 +160,18 @@ export default function ReportsClient({ buildings }: { buildings: Building[] }) 
         <div className="flex items-center gap-3">
           <button
             onClick={() => handleExport("excel")}
+            disabled={isExporting !== null}
             className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm"
           >
-            <Download size={14} className="text-teal-500" />
+            {isExporting === "excel" ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} className="text-teal-500" />}
             Excel Export
           </button>
           <button
             onClick={() => handleExport("pdf")}
+            disabled={isExporting !== null}
             className="flex items-center gap-2 px-5 py-2.5 bg-teal-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-teal-600 transition-all shadow-lg shadow-teal-500/20"
           >
-            <FileText size={14} />
+            {isExporting === "pdf" ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
             PDF Report
           </button>
         </div>

@@ -1,19 +1,6 @@
-import dynamic from "next/dynamic";
 import { getReportBuildings } from "./actions";
-import { AlertCircle, Loader2 } from "lucide-react";
-
-// Dynamically import ReportsClient with SSR disabled to avoid browser-only library issues (jspdf, exceljs)
-const ReportsClient = dynamic(() => import("./ReportsClient"), { 
-  ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
-        <p className="text-xs font-mono uppercase tracking-widest text-slate-400">Loading Report Engine...</p>
-      </div>
-    </div>
-  )
-});
+import ReportsClient from "./ReportsClient";
+import { AlertCircle } from "lucide-react";
 
 export default async function ReportsPage() {
   const result = await getReportBuildings();

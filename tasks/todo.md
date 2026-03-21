@@ -13,10 +13,10 @@
   - [x] Update `src/components/dashboard/TrendsChart.tsx` (@mui/x-charts)
   - [x] Update `src/components/dashboard/FinancialTable.tsx` (MUI Tables)
   - [x] Update `src/components/dashboard/RisksPanel.tsx` (MUI Card/List)
-- [/] **Phase 4: Verification & Refinement**
-  - [/] Verify light/dark theme toggle works correctly
-  - [/] Mobile/Desktop layout testing
-  - [ ] Component styling consistency check
-- [ ] **Phase 5: Final Handover**
-  - [ ] Create `walkthrough.md`
-  - [ ] Request final reviewons
+- [x] **Phase 4: Verification & Refinement**
+  - [x] Verify light/dark theme toggle works correctly
+  - [x] Mobile/Desktop layout testing
+  - [x] Component styling consistency check
+- [x] **Phase 5: Final Handover**
+  - [x] Create `walkthrough.md`
+  - [x] Request final reviewons

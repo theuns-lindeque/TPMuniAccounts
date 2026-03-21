@@ -11,13 +11,16 @@ export async function getMe() {
     const reqHeaders = await headers();
     let { user } = await payload.auth({ headers: reqHeaders });
 
-    // Fallback if payload.auth fails due to Vercel header stripping or CSRF mismatches
+    // Fallback if payload.auth fails
     if (!user) {
       const cookieHeader = reqHeaders.get("cookie") || "";
       const tokenMatch = cookieHeader.match(/payload-token=([^;]+)/);
-      if (tokenMatch && process.env.PAYLOAD_SECRET) {
+      const secret = process.env.PAYLOAD_SECRET;
+      
+      if (tokenMatch && secret) {
         try {
-          const decoded = jwt.verify(tokenMatch[1], process.env.PAYLOAD_SECRET) as any;
+          const decoded = jwt.verify(tokenMatch[1], secret) as any;
+          console.log(`getMe - Fallback JWT Decoded! User ID: ${decoded.id}`);
           if (decoded && decoded.collection === "users" && decoded.id) {
             const fallbackUser = await payload.findByID({
               collection: "users",
@@ -27,9 +30,11 @@ export async function getMe() {
               user = { ...fallbackUser, collection: "users" } as any;
             }
           }
-        } catch (e) {
-          console.error("getMe - Fallback JWT decode failed:", e);
+        } catch (e: any) {
+          console.error(`getMe - Fallback JWT decode failed. Error: ${e.message}`);
         }
+      } else if (tokenMatch && !secret) {
+        console.error("getMe - Fallback failed: Token found but PAYLOAD_SECRET is missing from env!");
       }
     }
 

@@ -2,10 +2,15 @@
 
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Sidebar } from "@/components/Sidebar";
 import { AIChatSidebar } from "@/components/AIChatSidebar";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { Menu, X, Sparkles } from "lucide-react";
+import { MuiThemeProvider } from "@/components/MuiThemeProvider";
+import { SideMenu } from "@/components/layout/SideMenu";
+import { AppNavbar } from "@/components/layout/AppNavbar";
+import Box from "@mui/material/Box";
+import Drawer from "@mui/material/Drawer";
+import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -20,79 +25,99 @@ export function Shell({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <div className="flex h-screen overflow-hidden flex-col md:flex-row relative">
-        {/* Mobile Header - Only for authenticated pages */}
-        {!isPublicPage && (
-          <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 z-30 shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 border-2 border-teal-500 rounded-sm flex items-center justify-center font-mono font-bold text-teal-500 text-[10px] tracking-tighter shrink-0">
-                TP
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                MuniAccounts
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsAIChatOpen(true)}
-                className="p-2 text-teal-500 hover:bg-teal-500/10 rounded-full transition-colors"
-              >
-                <Sparkles size={20} />
-              </button>
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 text-slate-500 hover:text-teal-500 transition-colors"
-              >
-                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {!isPublicPage && (
-          <div
-            className={`
-              fixed inset-0 z-40 md:relative md:z-20 transform transition-transform duration-300 ease-in-out
-              ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-            `}
-          >
-            {/* Overlay for mobile */}
-            {isMobileMenuOpen && (
-              <div
-                className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm md:hidden"
-                onClick={() => setIsMobileMenuOpen(false)}
-              />
-            )}
-            <Sidebar onNavigate={() => setIsMobileMenuOpen(false)} />
-          </div>
-        )}
-
-        <main
-          className={`flex-1 overflow-y-auto ${!isPublicPage ? "bg-[#fcfcfd] dark:bg-[#0d1117]" : ""} relative`}
-        >
-          {children}
-
-          {/* Floating AI Trigger - Authenticated Pages Only */}
+      <MuiThemeProvider>
+        <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
           {!isPublicPage && (
-            <button
-              onClick={() => setIsAIChatOpen(true)}
-              className="fixed bottom-6 right-6 p-4 bg-teal-500 hover:bg-teal-600 text-white rounded-full shadow-xl shadow-teal-500/20 z-30 group/ai transition-all hover:scale-110 active:scale-95 hidden md:flex items-center gap-2"
-            >
-              <Sparkles size={20} />
-              <span className="max-w-0 overflow-hidden group-hover/ai:max-w-xs transition-all duration-500 ease-in-out text-[10px] font-bold uppercase tracking-[0.1em] whitespace-nowrap font-sans">
-                Consulting AI
-              </span>
-            </button>
+            <>
+              {/* Desktop SideMenu */}
+              <SideMenu />
+              
+              {/* Mobile SideMenu Drawer */}
+              <Drawer
+                anchor="left"
+                open={isMobileMenuOpen}
+                onClose={() => setIsMobileMenuOpen(false)}
+                sx={{
+                  display: { xs: "block", md: "none" },
+                  "& .MuiDrawer-paper": { boxSizing: "border-box", width: 240 },
+                }}
+              >
+                <SideMenu onNavigate={() => setIsMobileMenuOpen(false)} />
+              </Drawer>
+            </>
           )}
-        </main>
 
-        {!isPublicPage && (
-          <AIChatSidebar
-            isOpen={isAIChatOpen}
-            onClose={() => setIsAIChatOpen(false)}
-          />
-        )}
-      </div>
+          <Box
+            component="main"
+            sx={{
+              flexGrow: 1,
+              height: "100vh",
+              overflow: "auto",
+              display: "flex",
+              flexDirection: "column",
+              backgroundColor: (theme) => 
+                !isPublicPage 
+                  ? theme.palette.mode === "dark" ? "#0D1117" : "#FCFCFD"
+                  : "transparent",
+            }}
+          >
+            {!isPublicPage && <AppNavbar onMobileMenuToggle={() => setIsMobileMenuOpen(true)} />}
+            
+            <Box sx={{ flexGrow: 1, p: isPublicPage ? 0 : 3, position: "relative" }}>
+              {children}
+            </Box>
+
+            {/* Floating AI Trigger - Authenticated Pages Only */}
+            {!isPublicPage && (
+              <Box
+                component="button"
+                onClick={() => setIsAIChatOpen(true)}
+                sx={{
+                  fixed: "bottom",
+                  position: "fixed",
+                  bottom: 24,
+                  right: 24,
+                  p: 2,
+                  bgcolor: "primary.main",
+                  color: "white",
+                  borderRadius: "9999px",
+                  boxShadow: (theme) => `0 10px 15px -3px ${alpha(theme.palette.primary.main, 0.3)}`,
+                  zIndex: 1300,
+                  display: { xs: "none", md: "flex" },
+                  alignItems: "center",
+                  gap: 1.5,
+                  transition: "all 0.2s",
+                  border: "none",
+                  cursor: "pointer",
+                  "&:hover": {
+                    transform: "scale(1.1)",
+                    bgcolor: "primary.dark",
+                  },
+                  "&:active": {
+                    transform: "scale(0.95)",
+                  },
+                }}
+              >
+                <Box component="span" sx={{ display: "flex", alignItems: "center" }}>
+                   <div className="w-5 h-5 flex items-center justify-center">
+                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path><path d="M19 3v4"></path><path d="M21 5h-4"></path></svg>
+                   </div>
+                </Box>
+                <Typography component="span" sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  Consulting AI
+                </Typography>
+              </Box>
+            )}
+          </Box>
+
+          {!isPublicPage && (
+            <AIChatSidebar
+              isOpen={isAIChatOpen}
+              onClose={() => setIsAIChatOpen(false)}
+            />
+          )}
+        </Box>
+      </MuiThemeProvider>
     </ThemeProvider>
   );
 }

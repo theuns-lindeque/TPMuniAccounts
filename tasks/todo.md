@@ -1,0 +1,22 @@
+# Redesign UI to Match MUI Dashboard
+
+- [x] **Phase 1: Setup & Configuration**
+  - [x] Install MUI dependencies (@mui/material, @emotion/react, @emotion/styled, @mui/icons-material, @mui/x-charts)
+  - [x] Create `src/lib/mui-theme.ts` for light/dark palettes
+  - [x] Update `src/app/(main)/layout.tsx` with MUI `ThemeProvider` and `CssBaseline`
+- [x] **Phase 2: Core Layout Overhaul**
+  - [x] Implement `src/components/layout/SideMenu.tsx` (Sidebar)
+  - [x] Implement `src/components/layout/AppNavbar.tsx` (Top bar)
+  - [x] Update `src/components/Shell.tsx` to integrate new layout components
+- [x] **Phase 3: Dashboard Redesign**
+  - [x] Update `src/app/(main)/dashboard/page.tsx` (Grid2, Box, Stack)
+  - [x] Update `src/components/dashboard/TrendsChart.tsx` (@mui/x-charts)
+  - [x] Update `src/components/dashboard/FinancialTable.tsx` (MUI Tables)
+  - [x] Update `src/components/dashboard/RisksPanel.tsx` (MUI Card/List)
+- [/] **Phase 4: Verification & Refinement**
+  - [/] Verify light/dark theme toggle works correctly
+  - [/] Mobile/Desktop layout testing
+  - [ ] Component styling consistency check
+- [ ] **Phase 5: Final Handover**
+  - [ ] Create `walkthrough.md`
+  - [ ] Request final reviewons

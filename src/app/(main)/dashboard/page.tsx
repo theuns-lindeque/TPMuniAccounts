@@ -3,30 +3,31 @@ import { FinancialTable } from "@/components/dashboard/FinancialTable";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
 import { RisksPanel } from "@/components/dashboard/RisksPanel";
 import {
-  LayoutDashboard,
   TrendingUp,
   AlertCircle,
   FileText,
   Inbox,
 } from "lucide-react";
 import { getDashboardData } from "@/app/(main)/actions/dashboard";
+import Box from "@mui/material/Box";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import Paper from "@mui/material/Paper";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 
 export default async function DashboardPage() {
   const result = await getDashboardData();
   
   if (!result.success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fcfcfd] dark:bg-[#0d1117]">
-        <div className="text-center p-8 border border-red-200 dark:border-red-900/50 rounded-xl bg-red-50 dark:bg-red-900/10">
-          <AlertCircle className="mx-auto h-8 w-8 text-red-500 mb-2" />
-          <h2 className="text-sm font-bold text-red-700 dark:text-red-400 uppercase tracking-widest">
-            ERROR_FETCHING_DATA
-          </h2>
-          <p className="text-xs text-red-600/70 dark:text-red-400/50 mt-1 uppercase font-mono">
-            {result.error}
-          </p>
-        </div>
-      </div>
+      <Box sx={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3 }}>
+        <Alert severity="error" sx={{ maxWidth: 400 }}>
+          <AlertTitle>Error Fetching Data</AlertTitle>
+          {result.error}
+        </Alert>
+      </Box>
     );
   }
 
@@ -34,23 +35,34 @@ export default async function DashboardPage() {
 
   if (!hasData) {
     return (
-      <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] p-6 font-sans">
-        <header className="mb-8 border-b border-slate-200 dark:border-slate-800 pb-6">
-          <div className="flex items-center gap-2 text-teal-500 mb-1">
-            <LayoutDashboard size={14} />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">System Overview</span>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
-        </header>
-
-        <main className="flex flex-col items-center justify-center h-[50vh] text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl bg-slate-50/30 dark:bg-slate-900/30">
-          <Inbox className="h-12 w-12 text-slate-300 dark:text-slate-700 mb-4" />
-          <h2 className="text-lg font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">NO_DATA_AVAILABLE</h2>
-          <p className="text-xs text-slate-500 mt-2 max-w-xs uppercase leading-relaxed font-mono">
-             Upload municipal bills and recovery reports to see analytics here.
-          </p>
-        </main>
-      </div>
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
+          Analytics Dashboard
+        </Typography>
+        <Paper
+          variant="outlined"
+          sx={{
+            height: '50vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderStyle: 'dashed',
+            borderRadius: 4,
+            bgcolor: 'background.default',
+            textAlign: 'center',
+            p: 4
+          }}
+        >
+          <Inbox size={48} color="disabled" style={{ marginBottom: 16, opacity: 0.3 }} />
+          <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.1em' }}>
+            NO DATA AVAILABLE
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 300 }}>
+            Upload municipal bills and recovery reports to see analytics here.
+          </Typography>
+        </Paper>
+      </Box>
     );
   }
 
@@ -62,83 +74,84 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 p-4 sm:p-6 font-sans">
-      <header className="mb-6 sm:mb-8 border-b border-slate-200 dark:border-slate-800 pb-4 sm:pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-teal-500 mb-1">
-            <LayoutDashboard size={14} className="sm:size-4" />
-            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em]">
-              System Overview
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+    <Box sx={{ flexGrow: 1 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-end" sx={{ mb: 4 }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, tracking: -1 }}>
             Analytics Dashboard
-          </h1>
-        </div>
-        <div className="text-left sm:text-right">
-          <p className="text-[10px] sm:text-xs text-slate-500 font-mono uppercase tracking-tighter">
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Aggregated municipal and recovery performance oversight.
+          </Typography>
+        </Box>
+        <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
+          <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled', fontFamily: 'monospace' }}>
             NODE_CLUSTER: AGGREGATE_ALL
-          </p>
-          <p className="text-[10px] sm:text-xs text-slate-500 font-mono uppercase tracking-tighter">
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled', fontFamily: 'monospace' }}>
             TIMESTAMP: {new Date().toISOString().substring(0, 16).replace("T", " ")}
-          </p>
-        </div>
-      </header>
+          </Typography>
+        </Box>
+      </Stack>
 
-      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Trends and Table */}
-        <div className="lg:col-span-2 space-y-6">
-          <section>
-            <div className="flex items-center gap-2 mb-4 px-1">
-              <TrendingUp size={14} className="text-teal-500" />
-              <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 ">
-                Financial Performance Trends
-              </h2>
-            </div>
-            <TrendsChart data={result.chartData} />
-          </section>
+      <Grid container spacing={3}>
+        {/* Main Content: Trends and Table */}
+        <Grid size={{ xs: 12, lg: 8 }}>
+          <Stack spacing={3}>
+            <section>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                <TrendingUp size={16} color="#0A66C2" />
+                <Typography variant="overline" sx={{ fontWeight: 700, color: 'text.secondary', letterSpacing: '0.1em' }}>
+                  Financial Performance Trends
+                </Typography>
+              </Stack>
+              <TrendsChart data={result.chartData} />
+            </section>
 
-          <section>
-            <div className="flex items-center gap-2 mb-4 px-1">
-              <FileText size={14} className="text-teal-500" />
-              <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
-                Building Audit History
-              </h2>
-            </div>
-            <FinancialTable reports={reportsFormatted} />
-          </section>
-        </div>
+            <section>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                <FileText size={16} color="#0A66C2" />
+                <Typography variant="overline" sx={{ fontWeight: 700, color: 'text.secondary', letterSpacing: '0.1em' }}>
+                  Building Audit History
+                </Typography>
+              </Stack>
+              <FinancialTable reports={reportsFormatted} />
+            </section>
+          </Stack>
+        </Grid>
 
-        {/* Right Column: Risks Panel */}
-        <div className="space-y-6">
-          <section className="h-full">
-            <div className="flex items-center gap-2 mb-4 px-1">
-              <AlertCircle size={14} className="text-teal-500" />
-              <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+        {/* Sidebar Content: Risks Panel */}
+        <Grid size={{ xs: 12, lg: 4 }}>
+          <Box sx={{ position: { lg: 'sticky' }, top: 24 }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+              <AlertCircle size={16} color="#0A66C2" />
+              <Typography variant="overline" sx={{ fontWeight: 700, color: 'text.secondary', letterSpacing: '0.1em' }}>
                 AI Intelligence & Risks
-              </h2>
-            </div>
-            <div className="lg:sticky lg:top-6">
-              {result.latestReport ? (
-                  <div className="h-[calc(100vh-250px)]">
-                    <RisksPanel report={result.latestReport} />
-                  </div>
-              ) : (
-                <div className="p-8 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 flex flex-col items-center justify-center text-center opacity-60">
-                    <AlertCircle size={24} className="text-slate-300 mb-2" />
-                    <p className="text-[10px] font-mono uppercase text-slate-400">NO_ANOMALIES_DETECTED</p>
-                </div>
-              )}
-            </div>
-          </section>
-        </div>
-      </main>
+              </Typography>
+            </Stack>
+            {result.latestReport ? (
+              <RisksPanel report={result.latestReport} />
+            ) : (
+              <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', opacity: 0.6, borderRadius: 2 }}>
+                <AlertCircle size={32} color="disabled" style={{ marginBottom: 8, opacity: 0.3 }} />
+                <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, letterSpacing: '0.1em' }}>
+                  NO ANOMALIES DETECTED
+                </Typography>
+              </Paper>
+            )}
+          </Box>
+        </Grid>
+      </Grid>
 
-      <footer className="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-[10px] font-mono text-slate-400 uppercase tracking-widest">
-        <div>Proprietary Utility AI Engine v1.5-Pro</div>
-        <div>&copy; 2026 TPMuniAccounts. All rights reserved.</div>
-      </footer>
-    </div>
+      <Box sx={{ mt: 8, pt: 3, borderTop: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', opacity: 0.5 }}>
+        <Typography sx={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em' }}>
+          Proprietary Utility AI Engine v1.5-Pro
+        </Typography>
+        <Typography sx={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em' }}>
+          &copy; 2026 TPMuniAccounts.
+        </Typography>
+      </Box>
+    </Box>
   );
 }
 

@@ -1,4 +1,13 @@
 import React from "react";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import Chip from "@mui/material/Chip";
+import Typography from "@mui/material/Typography";
 
 interface Report {
   period: string;
@@ -14,72 +23,62 @@ interface FinancialTableProps {
 
 export const FinancialTable = ({ reports }: FinancialTableProps) => {
   return (
-    <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-md">
-      <table className="w-full text-sm text-left border-collapse">
-        <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-          <tr>
-            <th className="px-4 py-2 font-semibold text-slate-700 dark:text-slate-300">
-              Period
-            </th>
-            <th className="px-4 py-2 font-semibold text-slate-700 dark:text-slate-300 text-right">
-              Invoices
-            </th>
-            <th className="px-4 py-2 font-semibold text-slate-700 dark:text-slate-300 text-right">
-              Recoveries
-            </th>
-            <th className="px-4 py-2 font-semibold text-slate-700 dark:text-slate-300 text-right">
-              Deficit
-            </th>
-            <th className="px-4 py-2 font-semibold text-slate-700 dark:text-slate-300">
-              Risk
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+      <Table sx={{ minWidth: 650 }} aria-label="financial performance table">
+        <TableHead sx={{ bgcolor: "action.hover" }}>
+          <TableRow>
+            <TableCell sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Period</TableCell>
+            <TableCell align="right" sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Invoices</TableCell>
+            <TableCell align="right" sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Recoveries</TableCell>
+            <TableCell align="right" sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Deficit</TableCell>
+            <TableCell sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Risk Status</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
           {reports.map((report, idx) => (
-            <tr
+            <TableRow
               key={idx}
-              className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors"
+              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
-              <td className="px-4 py-2 font-mono text-slate-600 dark:text-slate-400">
-                {report.period}
-              </td>
-              <td className="px-4 py-2 text-right font-mono text-slate-900 dark:text-slate-100">
-                R{" "}
-                {parseFloat(report.totalInvoiceAmount).toLocaleString("en-ZA", {
-                  minimumFractionDigits: 2,
-                })}
-              </td>
-              <td className="px-4 py-2 text-right font-mono text-slate-900 dark:text-slate-100">
-                R{" "}
-                {parseFloat(report.totalRecoveryAmount).toLocaleString(
-                  "en-ZA",
-                  { minimumFractionDigits: 2 },
-                )}
-              </td>
-              <td className="px-4 py-2 text-right font-mono text-red-600 dark:text-red-400">
-                R{" "}
-                {parseFloat(report.deficit).toLocaleString("en-ZA", {
-                  minimumFractionDigits: 2,
-                })}
-              </td>
-              <td className="px-4 py-2">
-                <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
-                    report.riskLevel === "High"
-                      ? "bg-red-50 text-red-700 border-red-200"
-                      : report.riskLevel === "Medium"
-                        ? "bg-amber-50 text-amber-700 border-amber-200"
-                        : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  }`}
-                >
-                  {report.riskLevel}
-                </span>
-              </td>
-            </tr>
+              <TableCell component="th" scope="row">
+                <Typography variant="body2" sx={{ fontFamily: "monospace", fontSize: 13, fontWeight: 600 }}>
+                  {report.period}
+                </Typography>
+              </TableCell>
+              <TableCell align="right">
+                <Typography variant="body2" sx={{ fontFamily: "monospace", fontSize: 13 }}>
+                  R {parseFloat(report.totalInvoiceAmount).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}
+                </Typography>
+              </TableCell>
+              <TableCell align="right">
+                <Typography variant="body2" sx={{ fontFamily: "monospace", fontSize: 13 }}>
+                  R {parseFloat(report.totalRecoveryAmount).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}
+                </Typography>
+              </TableCell>
+              <TableCell align="right">
+                <Typography variant="body2" sx={{ fontFamily: "monospace", fontSize: 13, color: "error.main", fontWeight: 600 }}>
+                  R {parseFloat(report.deficit).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Chip
+                  label={report.riskLevel}
+                  size="small"
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: 10,
+                    borderRadius: 1,
+                    textTransform: 'uppercase',
+                    ...(report.riskLevel === "High" && { bgcolor: "error.light", color: "error.dark" }),
+                    ...(report.riskLevel === "Medium" && { bgcolor: "warning.light", color: "warning.dark" }),
+                    ...(report.riskLevel === "Low" && { bgcolor: "success.light", color: "success.dark" }),
+                  }}
+                />
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };

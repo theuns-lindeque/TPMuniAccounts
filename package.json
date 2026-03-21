@@ -10,8 +10,15 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@google-cloud/storage": "^7.19.0",
     "@google/generative-ai": "^0.24.1",
+    "@mui/icons-material": "^7.3.9",
+    "@mui/material": "^7.3.9",
+    "@mui/material-nextjs": "^7.3.9",
+    "@mui/x-charts": "^8.28.0",
     "@neondatabase/serverless": "^1.0.2",
     "@payloadcms/db-postgres": "^3.79.0",
     "@payloadcms/next": "^3.79.0",

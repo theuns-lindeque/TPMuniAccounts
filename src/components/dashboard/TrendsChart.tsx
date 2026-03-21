@@ -1,104 +1,85 @@
 "use client";
 
 import React from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart } from "@mui/x-charts/LineChart";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
 
 interface TrendsChartProps {
   data: { month: string; invoices: number; recoveries: number }[];
 }
 
 export const TrendsChart = ({ data }: TrendsChartProps) => {
-  const [mounted, setMounted] = React.useState(false);
+  const theme = useTheme();
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="h-[300px] w-full border border-slate-200 dark:border-slate-800 rounded-md p-4 bg-white dark:bg-slate-950 flex items-center justify-center">
-        <div className="text-[10px] font-mono text-slate-400">
-          LOADING_CHART_COMPONENT...
-        </div>
-      </div>
-    );
-  }
+  const xData = data.map((d) => d.month);
+  const expenseData = data.map((d) => d.invoices);
+  const recoveryData = data.map((d) => d.recoveries);
 
   return (
-    <div className="h-[300px] w-full border border-slate-200 dark:border-slate-800 rounded-md p-4 bg-white dark:bg-slate-950">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4 px-2">
-        Financial Trends (12 Months)
-      </h3>
-      <ResponsiveContainer width="100%" height="80%">
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2,
+        height: 340,
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 2,
+        bgcolor: "background.paper",
+      }}
+    >
+      <Box sx={{ mb: 2, px: 1 }}>
+        <Typography variant="caption" sx={{ fontWeight: 700, color: "text.secondary", letterSpacing: "0.05em" }}>
+          EXPENDITURE VS RECOVERY (12 MONTHS)
+        </Typography>
+      </Box>
+      <Box sx={{ flexGrow: 1, width: "100%" }}>
         <LineChart
-          data={data}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="#e2e8f0"
-            vertical={false}
-          />
-          <XAxis
-            dataKey="month"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: "#94a3b8", fontSize: 10, fontFamily: "monospace" }}
-          />
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: "#94a3b8", fontSize: 10, fontFamily: "monospace" }}
-            tickFormatter={(value) => `R ${value}`}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "#fff",
-              border: "1px solid #e2e8f0",
-              borderRadius: "4px",
-              fontSize: "12px",
-              fontFamily: "monospace",
-            }}
-          />
-          <Legend
-            verticalAlign="top"
-            align="right"
-            iconType="circle"
-            wrapperStyle={{
-              fontSize: "10px",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          />
-          <Line
-            type="monotone"
-            dataKey="invoices"
-            stroke="#42b883"
-            strokeWidth={2}
-            dot={{ r: 3, fill: "#42b883" }}
-            activeDot={{ r: 5 }}
-            name="Expenses"
-          />
-          <Line
-            type="monotone"
-            dataKey="recoveries"
-            stroke="#8b5cf6"
-            strokeWidth={2}
-            dot={{ r: 3, fill: "#8b5cf6" }}
-            activeDot={{ r: 5 }}
-            name="Recoveries"
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+          xAxis={[
+            {
+              data: xData,
+              scaleType: "point",
+              tickLabelStyle: {
+                fontSize: 10,
+                fontFamily: "monospace",
+              },
+            },
+          ]}
+          series={[
+            {
+              data: expenseData,
+              label: "Expenses",
+              color: theme.palette.success.main,
+              showMark: true,
+              valueFormatter: (v) => `R ${v?.toLocaleString()}`,
+            },
+            {
+              data: recoveryData,
+              label: "Recoveries",
+              color: theme.palette.primary.main,
+              showMark: true,
+              valueFormatter: (v) => `R ${v?.toLocaleString()}`,
+            },
+          ]}
+          height={260}
+          margin={{ left: 60, right: 20, top: 20, bottom: 30 }}
+          slotProps={{
+            legend: {
+              direction: "horizontal",
+              position: { vertical: "start", horizontal: "end" },
+              padding: 0,
+              labelStyle: {
+                fontSize: 10,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                fontWeight: 700,
+              },
+            },
+          }}
+        />
+      </Box>
+    </Paper>
   );
 };

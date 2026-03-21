@@ -63,7 +63,7 @@ export const RisksPanel = ({ report }: RisksPanelProps) => {
             }}
           >
             <Stack direction="row" spacing={2} alignItems="flex-start">
-              <AlertTriangle size={18} color="#F79F01" style={{ marginTop: 2, shrink: 0 }} />
+              <AlertTriangle size={18} color="#F79F01" style={{ marginTop: 2, flexShrink: 0 }} />
               <Typography variant="body2" sx={{ pr: 4, lineHeight: 1.6 }}>
                 {risk}
               </Typography>

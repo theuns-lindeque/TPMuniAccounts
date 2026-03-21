@@ -68,14 +68,7 @@ export const TrendsChart = ({ data }: TrendsChartProps) => {
           slotProps={{
             legend: {
               direction: "horizontal",
-              position: { vertical: "start", horizontal: "end" },
-              padding: 0,
-              labelStyle: {
-                fontSize: 10,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                fontWeight: 700,
-              },
+              position: { vertical: "top", horizontal: "end" },
             },
           }}
         />

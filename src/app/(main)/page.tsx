@@ -1,170 +1,465 @@
 import { getAppSettings } from "@/app/(main)/actions/settings";
 import Link from "next/link";
+import {
+  Box,
+  Button,
+  Container,
+  Typography,
+  Grid,
+  Paper,
+  Stack,
+  alpha,
+  Divider,
+} from "@mui/material";
 import { Lock, ArrowRight, ShieldCheck, BarChart3, Zap } from "lucide-react";
 
 export default async function Home() {
   const settings = await getAppSettings();
   const activeModel = settings?.analysisModel
     ? settings.analysisModel.replace("gemini-", "").toUpperCase()
-    : "3.1-PRO";
+    : "1.5-PRO";
 
   return (
-    <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 font-sans selection:bg-teal-100 selection:text-teal-900 overflow-hidden relative">
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "background.default",
+        color: "text.primary",
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
       {/* Blueprint Pattern Background */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
-        style={{
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          opacity: (theme) => (theme.palette.mode === "dark" ? 0.05 : 0.03),
           backgroundImage: "radial-gradient(#111827 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}
-      ></div>
-      <div className="absolute inset-0 pointer-events-none border-[1px] border-slate-200/50 dark:border-slate-800/50 m-8"></div>
+      />
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 32,
+          pointerEvents: "none",
+          border: "1px solid",
+          borderColor: "divider",
+        }}
+      />
 
-      {/* Decorative Blueprint Lines */}
-      <div className="absolute top-0 left-1/4 w-[1px] h-full bg-slate-200/50 dark:bg-slate-800/50 hidden lg:block"></div>
-      <div className="absolute top-1/3 left-0 w-full h-[1px] bg-slate-200/50 dark:bg-slate-800/50 hidden lg:block"></div>
+      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 10 }}>
+        <Box
+          component="nav"
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            py: { xs: 3, lg: 4 },
+            borderBottom: "1px solid",
+            borderColor: "divider",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                border: "2px solid",
+                borderColor: "primary.main",
+                borderRadius: "4px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 800,
+                color: "primary.main",
+                fontSize: "0.75rem",
+              }}
+            >
+              TP
+            </Box>
+            <Typography
+              variant="caption"
+              fontWeight={800}
+              sx={{
+                textTransform: "uppercase",
+                letterSpacing: "0.3em",
+                color: "text.secondary",
+                fontSize: "0.7rem",
+              }}
+            >
+              MuniAccounts
+            </Typography>
+          </Box>
+          <Stack
+            direction="row"
+            spacing={4}
+            sx={{
+              display: { xs: "none", sm: "flex" },
+            }}
+          >
+            <Typography
+              variant="caption"
+              fontWeight={700}
+              sx={{
+                textTransform: "uppercase",
+                letterSpacing: "0.15em",
+                color: "text.secondary",
+                cursor: "pointer",
+                "&:hover": { color: "primary.main" },
+                transition: "color 0.2s",
+              }}
+            >
+              Architecture
+            </Typography>
+            <Typography
+              variant="caption"
+              fontWeight={700}
+              sx={{
+                textTransform: "uppercase",
+                letterSpacing: "0.15em",
+                color: "text.secondary",
+                cursor: "pointer",
+                "&:hover": { color: "primary.main" },
+                transition: "color 0.2s",
+              }}
+            >
+              Integrations
+            </Typography>
+          </Stack>
+        </Box>
 
-      <nav className="relative z-10 flex justify-between items-center px-6 lg:px-12 py-6 lg:py-8 border-b border-slate-200/50 dark:border-slate-800/50">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 border-2 border-teal-500 rounded-sm flex items-center justify-center font-mono font-bold text-teal-500 tracking-tighter">
-            TP
-          </div>
-          <span className="text-[10px] lg:text-xs font-bold uppercase tracking-[0.3em] text-slate-500">
-            MuniAccounts
-          </span>
-        </div>
-        <div className="hidden sm:flex gap-4 lg:gap-8 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          <span className="hover:text-teal-500 cursor-pointer transition-colors">
-            Architecture
-          </span>
-          <span className="hover:text-teal-500 cursor-pointer transition-colors">
-            Integrations
-          </span>
-        </div>
-      </nav>
-
-      <main className="relative z-10 grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-80px)]">
-        {/* Left Column: Hero Content */}
-        <div className="flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12 lg:py-20 lg:border-r border-slate-200/50 dark:border-slate-800/50">
-          <div className="max-w-xl text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-teal-500/20 bg-teal-500/5 mb-6 lg:mb-8">
-              <span className="flex h-2 w-2 rounded-full bg-teal-500 animate-pulse"></span>
-              <span className="text-[9px] lg:text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">
-                AI Engine {activeModel} Now Active
-              </span>
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 lg:mb-8 leading-[1] lg:leading-[0.9]">
-              Utility <span className="text-teal-500">Auditing</span>
-              <br />
-              at Scale.
-            </h1>
-
-            <p className="text-base lg:text-lg text-slate-500 dark:text-slate-400 mb-8 lg:mb-10 leading-relaxed font-light">
-              High-precision municipal analysis for commercial portfolios.
-              Automatically identify recovery deficits and audit leaks with
-              Self-Learning AI infrastructure.
-            </p>
-
-            <div className="grid grid-cols-3 gap-4 sm:gap-8">
-              <div className="space-y-2">
-                <BarChart3 className="text-teal-500 w-5 h-5 mx-auto lg:mx-0" />
-                <p className="text-[9px] lg:text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Analytics
-                </p>
-              </div>
-              <div className="space-y-2">
-                <ShieldCheck className="text-teal-500 w-5 h-5 mx-auto lg:mx-0" />
-                <p className="text-[9px] lg:text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  AI Audit
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Zap className="text-teal-500 w-5 h-5 mx-auto lg:mx-0" />
-                <p className="text-[9px] lg:text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Recovery
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Login Form */}
-        <div className="flex items-center justify-center p-6 sm:p-12 lg:p-8 bg-slate-50/50 dark:bg-slate-900/30">
-          <div className="max-w-md w-full p-8 lg:p-10 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-sm shadow-2xl relative overflow-hidden group">
-            {/* Corner Decorative Lines */}
-            <div className="absolute top-0 right-0 w-16 h-[1px] bg-teal-500/30"></div>
-            <div className="absolute top-0 right-0 w-[1px] h-16 bg-teal-500/30"></div>
-
-            <div className="mb-8 lg:mb-10 text-center">
-              <div className="inline-flex p-3 rounded-md border border-slate-100 dark:border-slate-800 mb-4 bg-slate-50 dark:bg-slate-900">
-                <Lock className="w-5 h-5 text-teal-500" />
-              </div>
-              <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                Portal Access
-              </h2>
-              <p className="text-xs text-slate-400 font-mono mt-2 uppercase tracking-widest">
-                Enter Credentials
-              </p>
-            </div>
-
-            <form className="space-y-6">
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
-                  Username or Email
-                </label>
-                <input
-                  type="text"
-                  className="w-full h-12 px-4 bg-transparent border border-slate-200 dark:border-slate-800 rounded focus:ring-1 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-700"
-                  placeholder="admin@tp-muni.com"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  className="w-full h-12 px-4 bg-transparent border border-slate-200 dark:border-slate-800 rounded focus:ring-1 focus:ring-teal-500 focus:border-teal-500 focus:outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-700 font-mono"
-                  placeholder="••••••••••••"
-                />
-              </div>
-
-              <Link
-                href="/dashboard"
-                className="flex items-center justify-center w-full h-14 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold uppercase tracking-[0.2em] rounded transition-all shadow-lg shadow-teal-500/20 group"
+        <Grid container sx={{ minHeight: "calc(100vh - 100px)" }}>
+          {/* Left Column: Hero Content */}
+          <Grid
+            size={{ xs: 12, lg: 7 }}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              py: { xs: 8, lg: 12 },
+              pr: { lg: 8 },
+              borderRight: { lg: "1px solid" },
+              borderColor: { lg: "divider" },
+            }}
+          >
+            <Box sx={{ maxWidth: 640 }}>
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: "20px",
+                  border: "1px solid",
+                  borderColor: alpha("#14b8a6", 0.2),
+                  bgcolor: alpha("#14b8a6", 0.05),
+                  mb: 4,
+                }}
               >
-                Establish Link
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    bgcolor: "#14b8a6",
+                    animation: "pulse 2s infinite",
+                  }}
+                />
+                <Typography
+                  variant="caption"
+                  fontWeight={800}
+                  sx={{
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: "#14b8a6",
+                  }}
+                >
+                  AI Engine {activeModel} Now Active
+                </Typography>
+              </Box>
 
-              <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-[10px] font-mono text-slate-400">
-                <span className="hover:text-teal-500 cursor-pointer uppercase transition-colors">
-                  Forgot Password
-                </span>
-                <span className="hover:text-teal-500 cursor-pointer uppercase transition-colors">
-                  Request ID
-                </span>
-              </div>
-            </form>
-          </div>
-        </div>
-      </main>
+              <Typography
+                variant="h1"
+                sx={{
+                  fontWeight: 800,
+                  fontSize: { xs: "2.5rem", sm: "3.5rem", lg: "4.5rem" },
+                  lineHeight: { xs: 1.1, lg: 1 },
+                  mb: 3,
+                }}
+              >
+                Utility <span style={{ color: "#14b8a6" }}>Auditing</span>
+                <br />
+                at Scale.
+              </Typography>
 
-      <footer className="absolute bottom-6 lg:bottom-12 left-6 lg:left-12 right-6 lg:left-12 flex justify-between items-center text-[9px] font-mono text-slate-400 uppercase tracking-[0.3em] pointer-events-none">
-        <div className="flex gap-4">
-          <span>LAT: -26.2041</span>
-          <span>LNG: 28.0473</span>
-        </div>
-        <div className="flex gap-4 pointer-events-auto">
-          <span className="hover:text-teal-500 cursor-pointer transition-colors">
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "text.secondary",
+                  fontSize: { xs: "1rem", lg: "1.125rem" },
+                  lineHeight: 1.6,
+                  mb: 6,
+                  fontWeight: 300,
+                }}
+              >
+                High-precision municipal analysis for commercial portfolios.
+                Automatically identify recovery deficits and audit leaks with
+                Self-Learning AI infrastructure.
+              </Typography>
+
+              <Grid container spacing={4}>
+                <Grid size={4}>
+                  <Stack spacing={1}>
+                    <BarChart3 size={20} color="#14b8a6" />
+                    <Typography
+                      variant="caption"
+                      fontWeight={800}
+                      sx={{
+                        textTransform: "uppercase",
+                        letterSpacing: "0.15em",
+                        color: "text.secondary",
+                      }}
+                    >
+                      Analytics
+                    </Typography>
+                  </Stack>
+                </Grid>
+                <Grid size={4}>
+                  <Stack spacing={1}>
+                    <ShieldCheck size={20} color="#14b8a6" />
+                    <Typography
+                      variant="caption"
+                      fontWeight={800}
+                      sx={{
+                        textTransform: "uppercase",
+                        letterSpacing: "0.15em",
+                        color: "text.secondary",
+                      }}
+                    >
+                      AI Audit
+                    </Typography>
+                  </Stack>
+                </Grid>
+                <Grid size={4}>
+                  <Stack spacing={1}>
+                    <Zap size={20} color="#14b8a6" />
+                    <Typography
+                      variant="caption"
+                      fontWeight={800}
+                      sx={{
+                        textTransform: "uppercase",
+                        letterSpacing: "0.15em",
+                        color: "text.secondary",
+                      }}
+                    >
+                      Recovery
+                    </Typography>
+                  </Stack>
+                </Grid>
+              </Grid>
+            </Box>
+          </Grid>
+
+          {/* Right Column: CTA/Login Link */}
+          <Grid
+            size={{ xs: 12, lg: 5 }}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              py: { xs: 8, lg: 0 },
+              pl: { lg: 8 },
+              bgcolor: (theme: any) =>
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.background.paper, 0.4)
+                  : alpha(theme.palette.background.default, 0.4),
+            }}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                width: "100%",
+                maxWidth: 440,
+                p: { xs: 4, lg: 6 },
+                borderRadius: "2px",
+                border: "1px solid",
+                borderColor: "divider",
+                bgcolor: "background.paper",
+                boxShadow: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "none"
+                    : "0 32px 64px rgba(0,0,0,0.05)",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              {/* Corner Decorative Lines */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  width: 64,
+                  height: 1,
+                  bgcolor: alpha("#14b8a6", 0.3),
+                }}
+              />
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  width: 1,
+                  height: 64,
+                  bgcolor: alpha("#14b8a6", 0.3),
+                }}
+              />
+
+              <Stack spacing={4} sx={{ textAlign: "center" }}>
+                <Box>
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      p: 1.5,
+                      borderRadius: "8px",
+                      border: "1px solid",
+                      borderColor: "divider",
+                      mb: 3,
+                      bgcolor: "background.default",
+                    }}
+                  >
+                    <Lock size={20} color="#14b8a6" />
+                  </Box>
+                  <Typography variant="h5" fontWeight={800} gutterBottom>
+                    Portal Access
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    fontWeight={800}
+                    sx={{
+                      textTransform: "uppercase",
+                      letterSpacing: "0.2em",
+                      color: "text.secondary",
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    Authorization Required
+                  </Typography>
+                </Box>
+
+                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 300 }}>
+                  Enter the secure registry to manage your commercial utility
+                  portfolio and perform real-time audits.
+                </Typography>
+
+                <Button
+                  component={Link}
+                  href="/login"
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  sx={{
+                    height: 56,
+                    borderRadius: "2px",
+                    bgcolor: "#14b8a6",
+                    "&:hover": { bgcolor: "#0d9488" },
+                    textTransform: "uppercase",
+                    fontWeight: 800,
+                    letterSpacing: "0.2em",
+                    fontSize: "0.75rem",
+                  }}
+                  endIcon={<ArrowRight size={16} />}
+                >
+                  Enter Registry
+                </Button>
+
+                <Divider sx={{ my: 1 }} />
+
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  sx={{
+                    "& > span": {
+                      fontSize: "10px",
+                      fontFamily: "monospace",
+                      color: "text.secondary",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.15em",
+                      cursor: "pointer",
+                      "&:hover": { color: "primary.main" },
+                    },
+                  }}
+                >
+                  <span>Request Access</span>
+                  <span>System Support</span>
+                </Stack>
+              </Stack>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Container>
+
+      {/* Corporate Metadata Footer */}
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: { xs: 24, lg: 48 },
+          left: { xs: 24, lg: 48 },
+          right: { xs: 24, lg: 48 },
+          display: { xs: "none", sm: "flex" },
+          justifyContent: "space-between",
+          alignItems: "center",
+          opacity: 0.4,
+          pointerEvents: "none",
+        }}
+      >
+        <Stack direction="row" spacing={4}>
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 800, letterSpacing: "0.3em", fontSize: "9px" }}
+          >
+            LAT: -26.2041
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 800, letterSpacing: "0.3em", fontSize: "9px" }}
+          >
+            LNG: 28.0473
+          </Typography>
+        </Stack>
+        <Stack direction="row" spacing={4}>
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 800, letterSpacing: "0.3em", fontSize: "9px" }}
+          >
             Audit Node: 0x2A4F
-          </span>
-          <span className="hover:text-teal-500 cursor-pointer transition-colors">
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 800, letterSpacing: "0.3em", fontSize: "9px" }}
+          >
             System v1.8
-          </span>
-        </div>
-      </footer>
-    </div>
+          </Typography>
+        </Stack>
+      </Box>
+
+      <style jsx global>{`
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.5;
+            transform: scale(0.9);
+          }
+        }
+      `}</style>
+    </Box>
   );
 }

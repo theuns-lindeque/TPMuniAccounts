@@ -1,8 +1,31 @@
-"use client";
-
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  Box,
+  Typography,
+  Button,
+  Stack,
+  Container,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
+  IconButton,
+  alpha,
+  Chip,
+  Tooltip,
+  Grid,
+} from "@mui/material";
 import {
   Building2,
   Upload,
@@ -11,6 +34,7 @@ import {
   Plus,
   X,
   Globe,
+  ArrowRight,
 } from "lucide-react";
 import { createBuildingAction } from "@/app/(main)/actions/buildings";
 
@@ -72,7 +96,7 @@ export default function PropertiesClient({
     const result = await createBuildingAction(data);
     if (result.success) {
       setIsModalOpen(false);
-      window.location.reload(); // Quick refresh to show new data
+      window.location.reload();
     } else {
       setError(result.error || "Failed to create building");
     }
@@ -80,255 +104,538 @@ export default function PropertiesClient({
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] text-slate-900 dark:text-slate-100 p-4 sm:p-8 font-sans">
-      <header className="mb-6 sm:mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-slate-200 dark:border-slate-800 pb-4 sm:pb-6 gap-6">
-        <div>
-          <div className="flex items-center gap-2 text-teal-500 mb-1">
-            <Building2 size={14} className="sm:size-4" />
-            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em]">
-              Portfolio Management
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Properties
-          </h1>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white text-xs font-bold uppercase tracking-widest rounded transition-all hover:opacity-90 shadow-lg shadow-slate-500/10"
-          >
-            <Plus size={14} />
-            Register Property
-          </button>
-          <Link
-            href="/upload?type=recovery"
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 text-xs font-bold uppercase tracking-widest rounded transition-all border border-slate-200 dark:border-slate-700"
-          >
-            <Upload size={14} className="text-teal-500" />
-            Upload Recovery
-          </Link>
-          <Link
-            href="/upload?type=bill"
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold uppercase tracking-widest rounded transition-all shadow-lg shadow-teal-500/10"
-          >
-            <Upload size={14} />
-            Upload Bills
-          </Link>
-        </div>
-      </header>
-
-      <main>
-        {/* Region Filters */}
-        <div className="mb-6 flex flex-wrap gap-2">
-          {REGIONS.map((region) => (
-            <button
-              key={region}
-              onClick={() => setSelectedRegion(region)}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
-                selectedRegion === region
-                  ? "bg-teal-500 text-white shadow-lg shadow-teal-500/20"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
-              }`}
+    <Box sx={{ p: { xs: 2, sm: 4 }, minHeight: "100vh" }}>
+      {/* Header */}
+      <Box
+        sx={{
+          mb: 6,
+          pb: 4,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          justifyContent: "space-between",
+          alignItems: { xs: "stretch", md: "flex-end" },
+          gap: 4,
+        }}
+      >
+        <Box>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+            <Building2 size={16} color="#14b8a6" />
+            <Typography
+              variant="caption"
+              fontWeight={800}
+              sx={{
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                color: "primary.main",
+              }}
             >
-              {region}
-            </button>
-          ))}
-        </div>
+              Portfolio Management
+            </Typography>
+          </Stack>
+          <Typography variant="h4" fontWeight={800} tracking-tight>
+            Properties
+          </Typography>
+        </Box>
 
-        <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-950/50 shadow-sm relative overflow-hidden">
-          <table className="w-full text-sm text-left border-collapse">
-            <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <Building2 size={12} className="text-teal-500" />
-                    Property Name
-                  </div>
-                </th>
-                <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <Globe size={12} className="text-teal-500" />
-                    Region
-                  </div>
-                </th>
-                <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <MapPin size={12} className="text-teal-500" />
-                    Street Address
-                  </div>
-                </th>
-                <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 text-right">
-                  <div className="flex items-center gap-2 justify-end">
-                    <CircleDollarSign size={12} className="text-teal-500" />
-                    Municipal Value
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-              {filteredBuildings.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-20 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-300 dark:text-slate-700">
-                        <Building2 size={24} />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-slate-900 dark:text-slate-100 font-medium">
-                          No properties found in {selectedRegion}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          Register a new property to get started.
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="mt-2 inline-flex items-center gap-2 text-teal-500 hover:text-teal-600 text-xs font-bold uppercase tracking-widest transition-colors"
-                      >
-                        <Plus size={14} />
-                        Register Property
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredBuildings.map((building) => (
-                  <tr
-                    key={building.id}
-                    onClick={() => router.push(`/properties/${building.id}`)}
-                    className="group hover:bg-slate-50/30 dark:hover:bg-slate-800/20 transition-all duration-200 cursor-pointer"
-                  >
-                    <td className="px-6 py-5">
-                      <div className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                        {building.name}
-                      </div>
-                      <div className="text-[10px] font-mono text-slate-400 mt-1 uppercase tracking-tighter">
-                        UUID: {building.id.slice(0, 8)}...
-                      </div>
-                    </td>
-                    <td className="px-6 py-5">
-                      <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                        {building.region}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="text-slate-600 dark:text-slate-400 max-w-xs truncate text-[13px]">
-                        {building.address || "—"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 text-right">
-                      <div className="font-mono font-bold text-slate-900 dark:text-teal-400 text-[13px]">
-                        {building.municipalValue
-                          ? `R ${parseFloat(building.municipalValue).toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                          : "—"}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+          <Button
+            variant="contained"
+            disableElevation
+            startIcon={<Plus size={16} />}
+            onClick={() => setIsModalOpen(true)}
+            sx={{
+              bgcolor: "text.primary",
+              color: "background.paper",
+              "&:hover": { bgcolor: alpha("#000", 0.8) },
+              px: 3,
+              py: 1.2,
+              borderRadius: "8px",
+              fontSize: "0.75rem",
+              fontWeight: 800,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+          >
+            Register Property
+          </Button>
+          <Button
+            component={Link}
+            href="/upload?type=recovery"
+            variant="outlined"
+            startIcon={<Upload size={16} color="#14b8a6" />}
+            sx={{
+              borderColor: "divider",
+              color: "text.primary",
+              "&:hover": { borderColor: "primary.main", bgcolor: "transparent" },
+              px: 3,
+              borderRadius: "8px",
+              fontSize: "0.75rem",
+              fontWeight: 800,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+          >
+            Upload Recovery
+          </Button>
+          <Button
+            component={Link}
+            href="/upload?type=bill"
+            variant="contained"
+            disableElevation
+            startIcon={<Upload size={16} />}
+            sx={{
+              bgcolor: "primary.main",
+              "&:hover": { bgcolor: "primary.dark" },
+              px: 3,
+              borderRadius: "8px",
+              fontSize: "0.75rem",
+              fontWeight: 800,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+          >
+            Upload Bills
+          </Button>
+        </Stack>
+      </Box>
 
-        {filteredBuildings.length > 0 && (
-          <div className="mt-6 flex justify-between items-center px-2 text-[10px] font-mono text-slate-400 uppercase tracking-widest">
-            <div>Showing {filteredBuildings.length} active nodes</div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-              <span>System Synchronized</span>
-            </div>
-          </div>
-        )}
-      </main>
+      {/* Region Filters */}
+      <Stack direction="row" spacing={1} sx={{ mb: 4, flexWrap: "wrap", gap: 1 }}>
+        {REGIONS.map((region) => (
+          <Chip
+            key={region}
+            label={region}
+            onClick={() => setSelectedRegion(region)}
+            sx={{
+              borderRadius: "100px",
+              fontSize: "0.65rem",
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              bgcolor: selectedRegion === region ? "primary.main" : "divider",
+              color: selectedRegion === region ? "white" : "text.secondary",
+              "&:hover": {
+                bgcolor:
+                  selectedRegion === region ? "primary.dark" : alpha("#000", 0.1),
+              },
+              transition: "all 0.2s",
+              px: 1,
+            }}
+          />
+        ))}
+      </Stack>
+
+      {/* Properties Table */}
+      <TableContainer
+        component={Paper}
+        elevation={0}
+        sx={{
+          border: "1px solid",
+          borderColor: "divider",
+          borderRadius: "16px",
+          bgcolor: "background.paper",
+          overflow: "hidden",
+        }}
+      >
+        <Table>
+          <TableHead sx={{ bgcolor: alpha("#f8fafc", 0.5) }}>
+            <TableRow>
+              <TableCell
+                sx={{
+                  py: 2.5,
+                  fontSize: "0.65rem",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.15em",
+                  color: "text.secondary",
+                }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Building2 size={14} color="#14b8a6" />
+                  <span>Property Name</span>
+                </Stack>
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontSize: "0.65rem",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.15em",
+                  color: "text.secondary",
+                }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Globe size={14} color="#14b8a6" />
+                  <span>Region</span>
+                </Stack>
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontSize: "0.65rem",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.15em",
+                  color: "text.secondary",
+                }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <MapPin size={14} color="#14b8a6" />
+                  <span>Street Address</span>
+                </Stack>
+              </TableCell>
+              <TableCell
+                align="right"
+                sx={{
+                  fontSize: "0.65rem",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.15em",
+                  color: "text.secondary",
+                }}
+              >
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  alignItems="center"
+                  justifyContent="flex-end"
+                >
+                  <CircleDollarSign size={14} color="#14b8a6" />
+                  <span>Municipal Value</span>
+                </Stack>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredBuildings.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} align="center" sx={{ py: 12 }}>
+                  <Stack spacing={2} alignItems="center">
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: "50%",
+                        bgcolor: "divider",
+                        color: "text.disabled",
+                      }}
+                    >
+                      <Building2 size={32} />
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" fontWeight={600}>
+                        No properties found in {selectedRegion}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Register a new property to get started.
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="text"
+                      startIcon={<Plus size={16} />}
+                      onClick={() => setIsModalOpen(true)}
+                      sx={{
+                        color: "primary.main",
+                        fontWeight: 800,
+                        fontSize: "0.75rem",
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Register Property
+                    </Button>
+                  </Stack>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredBuildings.map((building) => (
+                <TableRow
+                  key={building.id}
+                  hover
+                  onClick={() => router.push(`/properties/${building.id}`)}
+                  sx={{
+                    cursor: "pointer",
+                    "&:hover": { bgcolor: alpha("#14b8a6", 0.02) },
+                  }}
+                >
+                  <TableCell sx={{ py: 2.5 }}>
+                    <Typography
+                      variant="body2"
+                      fontWeight={700}
+                      sx={{ color: "text.primary" }}
+                    >
+                      {building.name}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontFamily: "monospace",
+                        color: "text.disabled",
+                        fontSize: "0.6rem",
+                        letterSpacing: "-0.02em",
+                      }}
+                    >
+                      UUID: {building.id.slice(0, 8)}...
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={building.region}
+                      size="small"
+                      sx={{
+                        height: 20,
+                        fontSize: "0.6rem",
+                        fontWeight: 800,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        bgcolor: "divider",
+                        borderRadius: "4px",
+                        px: 0.5,
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        maxWidth: 240,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      {building.address || "—"}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography
+                      variant="body2"
+                      fontWeight={800}
+                      sx={{
+                        fontFamily: "monospace",
+                        color: "primary.main",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      {building.municipalValue
+                        ? `R ${parseFloat(building.municipalValue).toLocaleString(
+                            "en-ZA",
+                            { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+                          )}`
+                        : "—"}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {filteredBuildings.length > 0 && (
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mt: 3, px: 2 }}
+        >
+          <Typography
+            variant="caption"
+            sx={{
+              fontFamily: "monospace",
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+              color: "text.disabled",
+              fontSize: "0.6rem",
+            }}
+          >
+            Showing {filteredBuildings.length} active nodes
+          </Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                bgcolor: "#10b981",
+                boxShadow: "0 0 8px rgba(16,185,129,0.5)",
+              }}
+            />
+            <Typography
+              variant="caption"
+              sx={{
+                textTransform: "uppercase",
+                letterSpacing: "0.15em",
+                color: "text.disabled",
+                fontSize: "0.6rem",
+              }}
+            >
+              System Synchronized
+            </Typography>
+          </Stack>
+        </Stack>
+      )}
 
       {/* Register Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
-            onClick={() => setIsModalOpen(false)}
-          ></div>
-          <div className="relative w-full max-w-lg bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">Register New Property</h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleRegister} className="space-y-5">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+      <Dialog
+        open={isModalOpen}
+        onClose={() => !isSubmitting && setIsModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: "24px", p: 2, bgcolor: "background.paper" },
+        }}
+      >
+        <DialogTitle sx={{ px: 3, pt: 3 }}>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography variant="h6" fontWeight={800}>
+              Register New Property
+            </Typography>
+            <IconButton onClick={() => setIsModalOpen(false)} size="small">
+              <X size={20} />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <form onSubmit={handleRegister}>
+          <DialogContent sx={{ px: 3, py: 2 }}>
+            <Stack spacing={3}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  fontWeight={800}
+                  sx={{
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: "text.secondary",
+                    mb: 1,
+                    display: "block",
+                  }}
+                >
                   Property Name
-                </label>
-                <input
-                  required
+                </Typography>
+                <TextField
+                  fullWidth
                   name="name"
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                  required
                   placeholder="e.g. Oak Ridge Office Park"
+                  variant="outlined"
+                  slotProps={{ input: { sx: { borderRadius: "12px" } } }}
                 />
-              </div>
+              </Box>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <Box>
+                <Typography
+                  variant="caption"
+                  fontWeight={800}
+                  sx={{
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: "text.secondary",
+                    mb: 1,
+                    display: "block",
+                  }}
+                >
                   Street Address
-                </label>
-                <input
+                </Typography>
+                <TextField
+                  fullWidth
                   name="address"
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"
                   placeholder="e.g. 123 Main St, Cape Town"
+                  variant="outlined"
+                  slotProps={{ input: { sx: { borderRadius: "12px" } } }}
                 />
-              </div>
+              </Box>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography
+                    variant="caption"
+                    fontWeight={800}
+                    sx={{
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      color: "text.secondary",
+                      mb: 1,
+                      display: "block",
+                    }}
+                  >
                     Region
-                  </label>
-                  <select
+                  </Typography>
+                  <TextField
+                    select
+                    fullWidth
                     name="region"
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none appearance-none"
+                    defaultValue="Gauteng"
+                    variant="outlined"
+                    slotProps={{ input: { sx: { borderRadius: "12px" } } }}
                   >
                     {REGIONS.filter((r) => r !== "All").map((r) => (
-                      <option key={r} value={r}>
+                      <MenuItem key={r} value={r}>
                         {r}
-                      </option>
+                      </MenuItem>
                     ))}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  </TextField>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography
+                    variant="caption"
+                    fontWeight={800}
+                    sx={{
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      color: "text.secondary",
+                      mb: 1,
+                      display: "block",
+                    }}
+                  >
                     Municipal Value (ZAR)
-                  </label>
-                  <input
+                  </Typography>
+                  <TextField
+                    fullWidth
                     name="municipalValue"
                     type="number"
-                    step="0.01"
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                    slotProps={{ input: { step: "0.01", sx: { borderRadius: "12px", fontFamily: "monospace" } } }}
                     placeholder="3200000.00"
+                    variant="outlined"
                   />
-                </div>
-              </div>
+                </Grid>
+              </Grid>
 
               {error && (
-                <p className="text-xs text-red-500 font-medium">{error}</p>
+                <Typography variant="caption" color="error" fontWeight={600}>
+                  {error}
+                </Typography>
               )}
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-4 bg-teal-500 hover:bg-teal-600 text-white font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-teal-500/20 transition-all flex justify-center items-center gap-2"
-              >
-                {isSubmitting ? "Registering..." : "Complete Registration"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 4, pt: 2 }}>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              variant="contained"
+              fullWidth
+              sx={{
+                py: 1.8,
+                borderRadius: "12px",
+                bgcolor: "primary.main",
+                "&:hover": { bgcolor: "primary.dark" },
+                fontSize: "0.75rem",
+                fontWeight: 800,
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+              }}
+            >
+              {isSubmitting ? "Registering..." : "Complete Registration"}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </Box>
   );
 }

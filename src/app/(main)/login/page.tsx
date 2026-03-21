@@ -1,7 +1,16 @@
-"use client";
-
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Container,
+  InputAdornment,
+  Alert,
+  CircularProgress,
+} from "@mui/material";
 import { Building2, Lock, Mail, ArrowRight } from "lucide-react";
 
 function LoginContent() {
@@ -46,99 +55,199 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfcfd] dark:bg-[#0d1117] flex flex-col items-center justify-center p-6 font-sans">
-      <div className="w-full max-w-md">
-        <div className="flex flex-col items-center mb-10">
-          <div className="w-16 h-16 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500 mb-6 border border-teal-500/20 shadow-lg shadow-teal-500/10">
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        p: 3,
+        bgcolor: "background.default",
+      }}
+    >
+      <Container maxWidth="xs">
+        <Box sx={{ mb: 6, textAlign: "center" }}>
+          <Box
+            sx={{
+              width: 64,
+              height: 64,
+              borderRadius: "16px",
+              bgcolor: "primary.light",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "primary.main",
+              mb: 3,
+              mx: "auto",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.05)",
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
             <Building2 size={32} />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          </Box>
+          <Typography variant="h4" fontWeight={700} gutterBottom>
             Welcome Back
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
             Sign in to access the TrueProp MUNI Registry
-          </p>
-        </div>
+          </Typography>
+        </Box>
 
-        <div className="bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden">
-          {/* Decorative Corner */}
-          <div className="absolute top-0 right-0 w-24 h-24 pointer-events-none overflow-hidden opacity-20">
-            <div className="absolute top-0 right-0 w-[1px] h-16 bg-teal-500 translate-x-[-1px]"></div>
-            <div className="absolute top-0 right-0 w-16 h-[1px] bg-teal-500 translate-y-[-1px]"></div>
-          </div>
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3, sm: 4 },
+            borderRadius: "24px",
+            border: "1px solid",
+            borderColor: "divider",
+            bgcolor: "background.paper",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Decorative Blueprint Corner (CSS-based) */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: 80,
+              height: 80,
+              opacity: 0.1,
+              pointerEvents: "none",
+              borderTop: "2px solid",
+              borderRight: "2px solid",
+              borderColor: "primary.main",
+              transform: "translate(40px, -40px) rotate(45deg)",
+            }}
+          />
 
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2 ml-1">
-                Email Address
-              </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                  <Mail size={18} />
-                </div>
-                <input
+          <form onSubmit={handleLogin}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  fontWeight={700}
+                  sx={{
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: "text.secondary",
+                    mb: 1,
+                    display: "block",
+                    ml: 0.5,
+                  }}
+                >
+                  Email Address
+                </Typography>
+                <TextField
+                  fullWidth
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="name@company.com"
-                  className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all text-sm"
+                  variant="outlined"
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Mail size={18} color="rgba(0,0,0,0.4)" />
+                        </InputAdornment>
+                      ),
+                      sx: { borderRadius: "12px" },
+                    },
+                  }}
                 />
-              </div>
-            </div>
+              </Box>
 
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2 ml-1">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                  <Lock size={18} />
-                </div>
-                <input
+              <Box>
+                <Typography
+                  variant="caption"
+                  fontWeight={700}
+                  sx={{
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: "text.secondary",
+                    mb: 1,
+                    display: "block",
+                    ml: 0.5,
+                  }}
+                >
+                  Password
+                </Typography>
+                <TextField
+                  fullWidth
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all text-sm"
+                  variant="outlined"
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Lock size={18} color="rgba(0,0,0,0.4)" />
+                        </InputAdornment>
+                      ),
+                      sx: { borderRadius: "12px" },
+                    },
+                  }}
                 />
-              </div>
-            </div>
+              </Box>
 
-            {error && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-medium text-center">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 rounded-xl bg-teal-500 hover:bg-teal-600 active:scale-[0.98] text-white font-bold uppercase tracking-widest text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2 group"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  Enter Registry
-                  <ArrowRight
-                    size={16}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                </>
+              {error && (
+                <Alert severity="error" sx={{ borderRadius: "12px" }}>
+                  {error}
+                </Alert>
               )}
-            </button>
-          </form>
-        </div>
 
-        <div className="mt-8 text-center">
-          <p className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={loading}
+                size="large"
+                fullWidth
+                sx={{
+                  py: 1.5,
+                  borderRadius: "12px",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
+                  "&:hover": {
+                    boxShadow: "0 12px 24px rgba(0,0,0,0.15)",
+                  },
+                }}
+                endIcon={!loading && <ArrowRight size={18} />}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "Enter Registry"
+                )}
+              </Button>
+            </Box>
+          </form>
+        </Paper>
+
+        <Box sx={{ mt: 4, textAlign: "center" }}>
+          <Typography
+            variant="caption"
+            sx={{
+              fontFamily: "monospace",
+              color: "text.secondary",
+              textTransform: "uppercase",
+              letterSpacing: "0.2em",
+            }}
+          >
             Secure Access Layer: TLS 1.3 // RSA 4096
-          </p>
-        </div>
-      </div>
-    </div>
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
   );
 }
 
@@ -146,9 +255,16 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#fcfcfd] dark:bg-[#0d1117]">
-          <div className="w-8 h-8 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
-        </div>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <CircularProgress color="primary" />
+        </Box>
       }
     >
       <LoginContent />
